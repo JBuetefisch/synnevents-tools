@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synnevents – Kaltakquise Gesprächsführer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; }
+  .container { width: 100%; max-width: 640px; }
+  .header { margin-bottom: 1.5rem; }
+  .header-title { font-size: 13px; font-weight: 600; color: #534AB7; text-transform: uppercase; letter-spacing: 0.07em; }
+  .header-sub { font-size: 22px; font-weight: 500; color: #1a1a18; margin-top: 4px; }
+  .progress { display: flex; gap: 6px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.2s; }
+  .dot.active { background: #534AB7; }
+  .dot.done { background: #5DCAA5; }
+  .breadcrumb { font-size: 12px; color: #999; margin-bottom: 1rem; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; min-height: 18px; }
+  .breadcrumb span { color: #888; }
+  .card { background: #fff; border: 1px solid #e8e6e0; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+  .phase { font-size: 11px; font-weight: 600; color: #534AB7; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+  .title { font-size: 16px; font-weight: 500; color: #1a1a18; margin-bottom: 0.75rem; }
+  .text-box { font-size: 15px; color: #1a1a18; line-height: 1.65; background: #f5f4f0; border-radius: 8px; padding: 0.9rem 1rem; border-left: 3px solid #534AB7; margin-bottom: 0.5rem; position: relative; }
+  .copy-btn { position: absolute; top: 8px; right: 8px; background: transparent; border: 1px solid #ddd; border-radius: 6px; padding: 3px 8px; font-size: 11px; color: #888; cursor: pointer; }
+  .copy-btn:hover { background: #eee; }
+  .copy-btn.copied { color: #0F6E56; border-color: #5DCAA5; }
+  .tip { font-size: 13px; color: #888; margin-top: 0.5rem; font-style: italic; }
+  .tip::before { content: 'ℹ '; }
+  .actions { display: flex; flex-direction: column; gap: 8px; margin-top: 1.25rem; }
+  .btn { padding: 11px 16px; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #1a1a18; font-size: 14px; cursor: pointer; text-align: left; transition: background 0.15s; display: flex; align-items: center; gap: 8px; font-family: inherit; }
+  .btn:hover { background: #f5f4f0; }
+  .btn.ja { border-color: #0F6E56; color: #0F6E56; }
+  .btn.ja:hover { background: #E1F5EE; }
+  .btn.nein { border-color: #A32D2D; color: #A32D2D; }
+  .btn.nein:hover { background: #FCEBEB; }
+  .btn.neutral { border-color: #534AB7; color: #534AB7; }
+  .btn.neutral:hover { background: #EEEDFE; }
+  .end-box { background: #f5f4f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+  .end-label { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+  .end-label::before { content: '✓ '; color: #0F6E56; }
+  .action-box { background: #fff; border: 1px solid #e8e6e0; border-radius: 8px; padding: 0.75rem 1rem; font-size: 14px; color: #1a1a18; line-height: 1.6; }
+  .restart-btn { padding: 8px 14px; border-radius: 8px; border: 1px solid #ddd; background: transparent; color: #888; font-size: 13px; cursor: pointer; font-family: inherit; margin-top: 0.5rem; }
+  .restart-btn:hover { background: #f5f4f0; }
+  .back-btn { background: transparent; border: none; color: #bbb; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 4px; font-family: inherit; }
+  .back-btn:hover { color: #888; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="header-title">Synnevents · Die Hotelspezialisten</div>
+    <div class="header-sub">Kaltakquise Gesprächsführer</div>
+  </div>
+  <div class="progress" id="progress"></div>
+  <div id="breadcrumb" class="breadcrumb"></div>
+  <div id="content"></div>
+</div>
+
+<script>
+const steps = {
+  start: {
+    phase: "Einstieg",
+    title: "Kanal wählen",
+    tip: "Wähle, wie du den Kontakt herstellst.",
+    options: [
+      { label: "Telefonanruf", next: "tel_bedarf_check", icon: "📞" },
+      { label: "LinkedIn-Nachricht", next: "linkedin_msg", icon: "💼" },
+      { label: "E-Mail / Voicemail", next: "email_voicemail", icon: "✉️" }
+    ]
+  },
+  linkedin_msg: {
+    phase: "LinkedIn",
+    title: "LinkedIn-Direktnachricht",
+    text: "Guten Tag [Frau/Herr Name], mein Name ist Josephine Bütefisch von den Hotelspezialisten. Ich hatte Ihnen vor einiger Zeit eine kurze Nachricht auf LinkedIn geschickt – nun wollte ich mich einmal persönlich melden.",
+    tip: "Kurz, verbindlich, persönlich. Kein Verkaufsdruck in der Erstnachricht.",
+    options: [
+      { label: "Antwort erhalten → zum Anruf", next: "tel_bedarf_check", icon: "✅" },
+      { label: "Keine Reaktion → E-Mail folgen", next: "email_voicemail", icon: "➡️" }
+    ]
+  },
+  email_voicemail: {
+    phase: "E-Mail / Voicemail",
+    title: "Nachricht für Voicemail oder E-Mail",
+    text: "Hallo [Name], ich wollte mich kurz persönlich melden und erreiche immer nur die Mailbox – daher versuche ich es auf diesem Weg. Darf ich fragen, ob Du bei [Firma] regelmäßig Veranstaltungen oder Meetings außerhalb der eigenen Räumlichkeiten organisierst?\n\nGenau hier setzen wir an – wir übernehmen die Hotelsuche (oder alle anderen Dienstleister rund um Veranstaltungen) komplett für Euch. Das ist kostenlos. Ihr spart nicht nur Zeit und Nerven, sondern bekommt durch unsere Einkaufskraft auch sehr gute Konditionen.\n\nKlingt das nach einer spannenden Lösung für Dich? Ich freue mich von Dir zu hören – auch wenn es nicht passt, dann weiß ich, wo ich stehe. :-)",
+    tip: "Per Du bei E-Mail schafft Nähe. Bei formellem Kontext → auf Sie wechseln.",
+    options: [
+      { label: "Rückmeldung → Bedarf bekannt", next: "tel_bedarf_check", icon: "✅" },
+      { label: "Kein Echo → abhaken / CRM notieren", next: "end_kein_echo", icon: "📋" }
+    ]
+  },
+  tel_bedarf_check: {
+    phase: "Telefonat",
+    title: "Gesprächseinstieg – Bedarf klären",
+    text: "Guten Tag Frau/Herr [Name], mein Name ist Josephine Bütefisch von den Hotelspezialisten. Darf ich fragen, ob Sie in Ihrem Unternehmen regelmäßig Veranstaltungen oder Meetings außerhalb der eigenen Räumlichkeiten organisieren?",
+    tip: "Offen fragen, nicht pitchen. Zuhören – der erste JA/NEIN entscheidet den Pfad.",
+    options: [
+      { label: "JA – Bedarf bekannt", next: "bedarf_ja_zustaendigkeit", icon: "✅", cls: "ja" },
+      { label: "NEIN – kein Bedarf bekannt", next: "bedarf_nein", icon: "❌", cls: "nein" }
+    ]
+  },
+  bedarf_ja_zustaendigkeit: {
+    phase: "Bedarf bekannt",
+    title: "Zuständigkeit klären",
+    text: "Sind Sie denn auch die Person in Ihrem Unternehmen, die für die Buchung von Hotels, Locations und Dienstleistern bei Firmenveranstaltungen zuständig ist?",
+    tip: "Nicht annehmen – explizit fragen. Falsche Kontakte kosten Zeit.",
+    options: [
+      { label: "JA – zuständig", next: "pitch_voll", icon: "✅", cls: "ja" },
+      { label: "NEIN – nicht zuständig", next: "weiterleitung", icon: "❌", cls: "nein" }
+    ]
+  },
+  weiterleitung: {
+    phase: "Weiterleitung",
+    title: "Richtigen Ansprechpartner erfragen",
+    text: "Darf ich erfragen, mit wem ich die Thematik Hotelbuchungen besprechen darf?",
+    tip: "Freundlich und neugierig bleiben – nicht drängend.",
+    options: [
+      { label: "Info erhalten → Kontakt aufnehmen", next: "end_kontakt_notiert", icon: "📋" },
+      { label: "Keine Auskunft → Freundlich verabschieden", next: "end_verabschiedung", icon: "👋" }
+    ]
+  },
+  pitch_voll: {
+    phase: "Pitch",
+    title: "Vollständiger Pitch – Zuständigkeit & Bedarf bekannt",
+    text: "Ich rufe Sie an, weil wir Unternehmen wie Ihrem helfen, bei der Planung von Firmenveranstaltungen schnell und unkompliziert das passende Hotel zu finden – und das völlig kostenfrei.\n\nWie organisieren Sie aktuell Ihre Veranstaltungen oder Hotelbuchungen? Bekommen Sie problemlos passende Angebote – oder kostet das eher viel Zeit und Nerven?",
+    tip: "Kurz pitchen, dann sofort Frage stellen. Nicht monologisieren.",
+    options: [
+      { label: "Machen wir selbst oder mit bestehendem Partner", next: "interesse_check_partner", icon: "✅", cls: "ja" },
+      { label: "Kein Interesse / kein Bedarf", next: "kein_interesse", icon: "❌", cls: "nein" },
+      { label: "Nerviges Thema / schlechte Zeit", next: "nerviges_thema", icon: "⚡", cls: "neutral" }
+    ]
+  },
+  bedarf_nein: {
+    phase: "Kein Bedarf",
+    title: "Bedarf nicht bekannt – nachfragen",
+    text: "Guten Tag Frau/Herr [Name], mein Name ist Josephine Bütefisch von den Hotelspezialisten. Darf ich kurz fragen, ob Sie in Ihrem Unternehmen regelmäßig Veranstaltungen oder Meetings außerhalb der eigenen Räumlichkeiten organisieren?\n\nKommt es vor, dass Sie Zimmerkontingente in Hotels für Gruppen buchen – z. B. für Messen oder Weihnachtsfeiern?",
+    tip: "Zweite Frage öffnet eine weitere Möglichkeit – nicht sofort aufgeben.",
+    options: [
+      { label: "JA – doch Bedarf", next: "pitch_voll", icon: "✅", cls: "ja" },
+      { label: "NEIN – wirklich kein Bedarf", next: "end_kein_bedarf", icon: "❌", cls: "nein" }
+    ]
+  },
+  interesse_check_partner: {
+    phase: "Interesse",
+    title: "Besteht bereits ein Partner?",
+    text: "Das freut mich. Arbeiten Sie aktuell schon mit einem Dienstleister oder machen das bisher selbst?",
+    tip: "Antwort bestimmt den nächsten Pfad – nicht bewerten, nur aufnehmen.",
+    options: [
+      { label: "Macht es selbst / intern", next: "pitch_selbst", icon: "🏢", cls: "ja" },
+      { label: "Hat bereits einen Partner", next: "pitch_partner", icon: "🤝", cls: "neutral" }
+    ]
+  },
+  pitch_selbst: {
+    phase: "Pitch – intern",
+    title: "Sie machen es selbst",
+    text: "Verstehe. Darf ich fragen, ob Sie für jede Anfrage unmittelbar transparente Angebote erhalten, inklusive Preisvergleich und Verfügbarkeit, ohne großen Recherche- und Telefonaufwand?",
+    tip: "Rhetorische Frage – sie führt zum klaren Mehrwert.",
+    options: [
+      { label: "JA (sind gut aufgestellt)", next: "pitch_selbst_gut", icon: "✅", cls: "ja" },
+      { label: "NEIN (kostet Zeit)", next: "termin_anfragen", icon: "❌", cls: "nein" }
+    ]
+  },
+  pitch_selbst_gut: {
+    phase: "Zusatzwert",
+    title: "Gut aufgestellt – trotzdem Mehrwert zeigen",
+    text: "Super, dann sind Sie bestens aufgestellt. Darf ich trotzdem kurz fragen: Wie zufrieden Sie mit Geschwindigkeit und Konditionen sind?",
+    tip: "Nicht aufgeben – ein Zusatz-Ansprechpartner ist immer wertvoll.",
+    options: [
+      { label: "Sehr zufrieden", next: "end_kontakt_als_backup", icon: "😊" },
+      { label: "Verbesserungspotenzial vorhanden", next: "termin_anfragen", icon: "💡", cls: "neutral" }
+    ]
+  },
+  pitch_partner: {
+    phase: "Pitch – Partner vorhanden",
+    title: "Bestehender Partner – Türöffner",
+    text: "Genau da kommen wir ins Spiel! Wir übernehmen die Hotelsuche komplett für Sie und zwar kostenfrei. Ihr Vorteil: Es spart Ihnen Zeit und Nerven und häufig bekommen wir durch unser Netzwerk schnelle und gute Konditionen.\n\nDarf ich Ihnen diese oder nächste Woche unsere Agentur und Leistung in einem 15-minütigen Termin in Ruhe vorstellen?",
+    tip: "Direkt Termin anfragen – kein endloses Erklären am Telefon.",
+    options: [
+      { label: "JA – Termin möglich", next: "termin_bestaetigen", icon: "✅", cls: "ja" },
+      { label: "NEIN – kein Interesse", next: "kein_interesse", icon: "❌", cls: "nein" }
+    ]
+  },
+  termin_anfragen: {
+    phase: "Terminanfrage",
+    title: "15-Minuten-Termin anfragen",
+    text: "Danke für die Offenheit. Am besten sprechen wir das einmal in Ruhe durch – dann können Sie mir genauer schildern, was Ihnen wichtig ist, und ich zeige Ihnen, wie wir das bei unseren Kunden lösen.\n\nWann haben Sie in den nächsten Tagen 15 Minuten Zeit für einen Termin?",
+    tip: "Offene Zeitfrage – kein Entweder-oder anbieten, das engt ein.",
+    options: [
+      { label: "Termin zugesagt", next: "termin_bestaetigen", icon: "✅", cls: "ja" },
+      { label: "Zögert / unschlüssig", next: "pitch_partner", icon: "🔄", cls: "neutral" },
+      { label: "Ablehnung", next: "kein_interesse", icon: "❌", cls: "nein" }
+    ]
+  },
+  termin_bestaetigen: {
+    phase: "Abschluss",
+    title: "Termin bestätigen",
+    text: "Wunderbar, dann sende ich Ihnen gleich einen Teamscall zu und wir sprechen am [Datum/Uhrzeit] kurz. Danach sehen wir, wie gut unser Service zu Ihnen passt.",
+    tip: "Teamscall-Link direkt nach dem Gespräch senden. Im CRM notieren.",
+    options: [
+      { label: "Gespräch beendet ✓", next: "end_erfolg", icon: "🎉", cls: "ja" }
+    ]
+  },
+  kein_interesse: {
+    phase: "Kein Interesse",
+    title: "Kein Interesse / kein Bedarf",
+    text: "Kann ich total verstehen. Mir geht es häufig auch so, wenn ich unvorbereitet kontaktiert werde. Daher kann ich Ihnen nur ans Herz legen: Wenn Sie das Gefühl haben, die Recherche kostet Sie Zeit und Mühen und macht einfach keinen Spaß, dann übernehmen wir das gern und kümmern uns darum. Wir holen die Angebote ein, vergleichen diese, sodass Sie unmittelbar eine Entscheidung treffen können. Kostenfrei – sei an dieser Stelle nochmal betont.\n\nDarf ich Ihnen mehr Informationen zu unserem Service zusenden?",
+    tip: "Empathisch einsteigen – Verständnis zeigt Menschlichkeit, kein Druck.",
+    options: [
+      { label: "JA – Infos senden", next: "end_infos_senden", icon: "✅", cls: "ja" },
+      { label: "NEIN – endgültig", next: "end_verabschiedung", icon: "❌", cls: "nein" }
+    ]
+  },
+  nerviges_thema: {
+    phase: "Schwieriger Moment",
+    title: "Schlechter Zeitpunkt / nerviges Thema",
+    text: "Das kann ich gut verstehen. Wann wäre ein besserer Moment – soll ich mich nächste Woche kurz melden?",
+    tip: "Kein Druck. Wann immer sie bereit sind – dann bist du da.",
+    options: [
+      { label: "Rückruf vereinbart", next: "end_rueckruf", icon: "📅", cls: "ja" },
+      { label: "Kein Interesse", next: "end_verabschiedung", icon: "❌", cls: "nein" }
+    ]
+  },
+  end_kontakt_als_backup: {
+    phase: "Abschluss",
+    title: "Als Backup-Kontakt positionieren",
+    text: "Das freut mich zu hören – es ist immer ein gutes Zeichen, wenn die Zusammenarbeit so gut läuft. Trotzdem ist es oft hilfreich, noch einen zusätzlichen Ansprechpartner in petto zu haben. Darf ich Ihnen meinen Kontakt zusenden, damit Sie sich bei Bedarf melden können?",
+    tip: "Kein Druck, aber Präsenz sichern.",
+    isEnd: true,
+    action: "Kontaktdaten zusenden + im CRM als 'warm, kein akuter Bedarf' markieren"
+  },
+  end_kontakt_notiert: {
+    phase: "Abschluss", title: "Kontakt notiert", isEnd: true,
+    action: "Name, Telefon & E-Mail des zuständigen Ansprechpartners aufnehmen → direkt kontaktieren"
+  },
+  end_infos_senden: {
+    phase: "Abschluss", title: "Infos zusenden", isEnd: true,
+    action: "E-Mail-Adresse aufnehmen → Homepage & Kurzprofil senden → in 1 Woche nachfassen"
+  },
+  end_rueckruf: {
+    phase: "Abschluss", title: "Rückruf vereinbart", isEnd: true,
+    action: "Datum + Uhrzeit im CRM eintragen → Erinnerung setzen"
+  },
+  end_erfolg: {
+    phase: "Abschluss", title: "Termin gesichert", isEnd: true,
+    action: "Teamscall-Link senden · Termin im Kalender eintragen · CRM: Status → 'Termin vereinbart'"
+  },
+  end_kein_bedarf: {
+    phase: "Abschluss",
+    title: "Kein Bedarf – freundlich verabschieden",
+    text: "Herzlichen Dank trotzdem für Ihre Zeit! Falls sich das irgendwann mal ändern sollte und doch Bedarf bestehen sollte, können Sie mich sehr gerne ansprechen oder anschreiben. Darf ich Ihnen dafür meine Kontaktdaten zusenden?",
+    tip: "Tür offen lassen.",
+    isEnd: true,
+    action: "E-Mail-Adresse aufnehmen → Homepage schicken → in 6 Monaten erneut kontaktieren"
+  },
+  end_kein_echo: {
+    phase: "Abschluss", title: "Keine Reaktion", isEnd: true,
+    action: "Im CRM als 'kein Echo' markieren → in 4 Wochen erneut versuchen (anderer Kanal)"
+  },
+  end_verabschiedung: {
+    phase: "Abschluss",
+    title: "Freundliche Verabschiedung",
+    text: "Alles klar, das kann ich gut verstehen. Ich wünsche Ihnen einen schönen Tag – und falls sich das irgendwann ändert, wissen Sie, wo Sie mich finden.",
+    tip: "Positiv enden. Kein Groll – man begegnet sich zweimal.",
+    isEnd: true,
+    action: "CRM: Status → 'kein Interesse' · in 6 Monaten ggf. erneut angehen"
+  }
+};
+
+let history = [], current = 'start';
+const totalDepth = 8;
+
+function render() {
+  const s = steps[current];
+  const prog = document.getElementById('progress');
+  prog.innerHTML = '';
+  for (let i = 0; i < totalDepth; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < history.length ? ' done' : i === history.length ? ' active' : '');
+    prog.appendChild(d);
+  }
+  const bc = document.getElementById('breadcrumb');
+  if (history.length === 0) { bc.innerHTML = ''; }
+  else {
+    const parts = history.map(h => `<span>${steps[h.step]?.phase || h.step}</span>`);
+    parts.push(`<span style="color:#1a1a18;font-weight:500">${s.phase}</span>`);
+    bc.innerHTML = parts.join(' <span>›</span> ');
+  }
+  let html = '';
+  if (history.length > 0) html += `<button class="back-btn" onclick="goBack()">← Zurück</button>`;
+  html += `<div class="card"><div class="phase">${s.phase}</div><div class="title">${s.title}</div>`;
+  if (s.text) {
+    const esc = s.text.replace(/\n/g, '<br>');
+    html += `<div class="text-box"><button class="copy-btn" onclick="copyText(this)">Kopieren</button>${esc}</div>`;
+  }
+  if (s.tip) html += `<div class="tip">${s.tip}</div>`;
+  if (s.isEnd) {
+    html += `</div><div class="end-box"><div class="end-label">Nächste Aktion</div><div class="action-box">${s.action}</div></div>`;
+    html += `<button class="restart-btn" onclick="restart()">↺ Neues Gespräch starten</button>`;
+  } else {
+    html += `<div class="actions">`;
+    s.options.forEach(opt => {
+      html += `<button class="btn ${opt.cls||''}" onclick="go('${opt.next}')">${opt.icon ? opt.icon + ' ' : ''}${opt.label}</button>`;
+    });
+    html += `</div></div>`;
+  }
+  document.getElementById('content').innerHTML = html;
+}
+
+function copyText(btn) {
+  const box = btn.parentElement;
+  const text = box.innerText.replace('Kopieren', '').trim();
+  navigator.clipboard && navigator.clipboard.writeText(text);
+  btn.textContent = '✓ Kopiert';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Kopieren'; btn.classList.remove('copied'); }, 2000);
+}
+
+function go(next) { history.push({ step: current }); current = next; render(); }
+function goBack() { if (history.length) { current = history.pop().step; render(); } }
+function restart() { history = []; current = 'start'; render(); }
+
+render();
+</script>
+</body>
+</html>
