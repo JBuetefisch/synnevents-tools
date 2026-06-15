@@ -1,1 +1,512 @@
-https://jbuetefisch.github.io/synnevents-tools/synnevents_kaltakquise.html
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synnevents – Kaltakquise Gesprächsführer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; min-height: 100vh; padding: 2rem 1rem; }
+  .tool-wrap { display: flex; justify-content: center; }
+  .container { width: 100%; max-width: 640px; }
+  .header { margin-bottom: 1.5rem; }
+  .header-title { font-size: 13px; font-weight: 600; color: #534AB7; text-transform: uppercase; letter-spacing: 0.07em; }
+  .header-sub { font-size: 22px; font-weight: 500; color: #1a1a18; margin-top: 4px; }
+  .progress { display: flex; gap: 6px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.2s; }
+  .dot.active { background: #534AB7; }
+  .dot.done { background: #5DCAA5; }
+  .breadcrumb { font-size: 12px; color: #999; margin-bottom: 1rem; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; min-height: 18px; }
+  .breadcrumb span { color: #888; }
+  .card { background: #fff; border: 1px solid #e8e6e0; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+  .phase { font-size: 11px; font-weight: 600; color: #534AB7; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+  .title { font-size: 16px; font-weight: 500; color: #1a1a18; margin-bottom: 0.75rem; }
+  .text-box { font-size: 15px; color: #1a1a18; line-height: 1.65; background: #f5f4f0; border-radius: 8px; padding: 0.9rem 1rem; border-left: 3px solid #534AB7; margin-bottom: 0.5rem; position: relative; }
+  .copy-btn { position: absolute; top: 8px; right: 8px; background: transparent; border: 1px solid #ddd; border-radius: 6px; padding: 3px 8px; font-size: 11px; color: #888; cursor: pointer; }
+  .copy-btn:hover { background: #eee; }
+  .copy-btn.copied { color: #0F6E56; border-color: #5DCAA5; }
+  .tip { font-size: 13px; color: #888; margin-top: 0.5rem; font-style: italic; }
+  .tip::before { content: 'ℹ '; }
+  .actions { display: flex; flex-direction: column; gap: 8px; margin-top: 1.25rem; }
+  .btn { padding: 11px 16px; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #1a1a18; font-size: 14px; cursor: pointer; text-align: left; transition: background 0.15s; display: flex; align-items: center; gap: 8px; font-family: inherit; }
+  .btn:hover { background: #f5f4f0; }
+  .btn.ja { border-color: #0F6E56; color: #0F6E56; }
+  .btn.ja:hover { background: #E1F5EE; }
+  .btn.nein { border-color: #A32D2D; color: #A32D2D; }
+  .btn.nein:hover { background: #FCEBEB; }
+  .btn.neutral { border-color: #534AB7; color: #534AB7; }
+  .btn.neutral:hover { background: #EEEDFE; }
+  .end-box { background: #f5f4f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+  .end-label { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+  .end-label::before { content: '✓ '; color: #0F6E56; }
+  .action-box { background: #fff; border: 1px solid #e8e6e0; border-radius: 8px; padding: 0.75rem 1rem; font-size: 14px; color: #1a1a18; line-height: 1.6; }
+  .restart-btn { padding: 8px 14px; border-radius: 8px; border: 1px solid #ddd; background: transparent; color: #888; font-size: 13px; cursor: pointer; font-family: inherit; margin-top: 0.5rem; }
+  .restart-btn:hover { background: #f5f4f0; }
+  .back-btn { background: transparent; border: none; color: #bbb; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 4px; font-family: inherit; }
+  .back-btn:hover { color: #888; }
+  .section-divider { max-width: 960px; margin: 3rem auto 2rem; border: none; border-top: 2px solid #e0ddd6; }
+  .section-title { max-width: 960px; margin: 0 auto 1.5rem; font-size: 13px; font-weight: 600; color: #534AB7; text-transform: uppercase; letter-spacing: 0.07em; }
+  .overview { max-width: 960px; margin: 0 auto 4rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; color: #1a1a18; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; padding: 8px 14px; background: #fff; border: 1px solid #e8e6e0; border-radius: 8px; font-size: 11px; color: #666; }
+  .li { display: flex; align-items: center; gap: 6px; }
+  .ld { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .ov-node { border-radius: 7px; padding: 9px 12px; font-size: 11.5px; line-height: 1.55; width: 100%; }
+  .ov-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.6; margin-bottom: 3px; font-style: normal; }
+  .n-start { background: #EEEDFE; border: 1.5px solid #AFA9EC; color: #26215C; }
+  .n-q     { background: #E6F1FB; border: 1.5px solid #85B7EB; color: #042C53; }
+  .n-say   { background: #E1F5EE; border: 1.5px solid #5DCAA5; color: #04342C; font-style: italic; }
+  .n-act   { background: #FAEEDA; border: 1.5px solid #EF9F27; color: #412402; }
+  .n-end   { background: #F1EFE8; border: 1.5px solid #B4B2A9; color: #2C2C2A; }
+  .tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 4px; white-space: nowrap; }
+  .tag-ja   { background: #EAF3DE; color: #173404; border: 1px solid #97C459; }
+  .tag-nein { background: #FCEBEB; color: #501313; border: 1px solid #F09595; }
+  .tag-info { background: #FAEEDA; color: #412402; border: 1px solid #EF9F27; }
+  .einstiege { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 8px; }
+  .einst-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #888; text-align: center; margin-bottom: 4px; }
+  .merge-bar { display: flex; align-items: center; gap: 8px; margin: 6px 0; color: #999; font-size: 11px; }
+  .merge-line { flex: 1; height: 1px; background: #ccc; }
+  .v { display: flex; justify-content: center; }
+  .vline { width: 2px; background: #C0BDCC; min-height: 12px; }
+  .ov-divider { height: 1px; background: #E0DED8; margin: 10px 0; }
+  .center-box { max-width: 580px; margin: 0 auto; }
+  .fork { display: flex; flex-direction: column; align-items: stretch; }
+  .fork-stem { display: flex; justify-content: center; }
+  .fork-bar-wrap { display: flex; align-items: flex-start; }
+  .fork-bar-left  { flex: 1; height: 2px; background: #C0BDCC; }
+  .fork-bar-right { flex: 1; height: 2px; background: #C0BDCC; }
+  .fork-mid { width: 2px; background: #C0BDCC; min-height: 2px; }
+  .fork-cols { display: flex; align-items: flex-start; gap: 0; }
+  .fork-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0 10px; }
+  .fork-col-inner { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+</style>
+</head>
+<body>
+
+<div class="tool-wrap">
+<div class="container">
+  <div class="header">
+    <div class="header-title">Synnevents · Die Hotelspezialisten</div>
+    <div class="header-sub">Kaltakquise Gesprächsführer</div>
+  </div>
+  <div class="progress" id="progress"></div>
+  <div id="breadcrumb" class="breadcrumb"></div>
+  <div id="content"></div>
+</div>
+</div>
+
+<script>
+const steps = {
+  start: {
+    phase: "Einstieg",
+    title: "Kanal wählen",
+    tip: "Wähle, wie du den Kontakt herstellst.",
+    options: [
+      { label: "Telefonanruf — kalt", next: "tel_kalt", icon: "📞" },
+      { label: "Telefonanruf — nach LinkedIn-Nachricht", next: "tel_linkedin", icon: "💼" },
+      { label: "Telefonanruf — nach Email/Kontakt", next: "tel_email", icon: "✉️" }
+    ]
+  },
+  tel_kalt: {
+    phase: "Einstieg A — Kalt",
+    title: "Vorstellung",
+    text: "Guten Tag Frau/Herr [Name], mein Name ist Josephine Bütefisch von Die Hotelspezialisten — wir helfen Unternehmen dabei, Hotels und Locations für Firmenveranstaltungen schnell und völlig kostenfrei zu finden.",
+    options: [{ label: "Weiter zu Qualifizierung 1", next: "q1", icon: "→", cls: "neutral" }]
+  },
+  tel_linkedin: {
+    phase: "Einstieg B — Nach LinkedIn",
+    title: "Vorstellung",
+    text: "Guten Tag Frau/Herr [Name], mein Name ist Josephine Bütefisch von Die Hotelspezialisten. Ich hatte Ihnen vor einiger Zeit eine kurze Nachricht auf LinkedIn geschickt, nun wollte ich mich einmal persönlich melden.",
+    options: [{ label: "Weiter zu Qualifizierung 1", next: "q1", icon: "→", cls: "neutral" }]
+  },
+  tel_email: {
+    phase: "Einstieg C — Nach Email/Kontakt",
+    title: "Vorstellung",
+    text: "Guten Tag Frau/Herr [Name], mein Name ist Josephine Bütefisch von Die Hotelspezialisten. Wir hatten bereits kurz Kontakt — ich wollte mich nun einmal persönlich melden.",
+    options: [{ label: "Weiter zu Qualifizierung 1", next: "q1", icon: "→", cls: "neutral" }]
+  },
+  q1: {
+    phase: "Qualifizierung 1",
+    title: "Veranstaltungen prüfen",
+    text: "Darf ich fragen, ob sie in ihrem Unternehmen regelmäßig Veranstaltungen oder Meetings außerhalb des Büros organisieren?",
+    options: [
+      { label: "JA", next: "q2", icon: "✅", cls: "ja" },
+      { label: "NEIN", next: "q1_auffang", icon: "❌", cls: "nein" }
+    ]
+  },
+  q1_auffang: {
+    phase: "Qualifizierung 1 — Auffangfrage",
+    title: "Zimmerkontingente prüfen",
+    text: "Kommt es vor, dass Sie Zimmerkontingente in Hotels für Gruppen buchen z. B. für Messen oder Weihnachtsfeiern?",
+    options: [
+      { label: "JA", next: "q2", icon: "✅", cls: "ja" },
+      { label: "NEIN", next: "end_kein_bedarf", icon: "❌", cls: "nein" }
+    ]
+  },
+  end_kein_bedarf: {
+    phase: "Abschluss",
+    title: "Kein Bedarf",
+    text: "Alles klar, danke für Ihre Zeit! Falls es sich irgendwann ändert, können Sie mich gern ansprechen. Darf ich Ihnen meinen Kontakt zusenden, damit Sie sich bei Bedarf ansprechen können?",
+    isEnd: true,
+    action: "Emailadresse aufnehmen & Homepage schicken"
+  },
+  q2: {
+    phase: "Qualifizierung 2 — Zuständigkeit",
+    title: "Zuständigkeit klären",
+    text: "Sind Sie in Ihrem Unternehmen auch für die Buchung von Hotels und Locations bei Firmenveranstaltungen zuständig?",
+    options: [
+      { label: "JA — zuständig", next: "pitch", icon: "✅", cls: "ja" },
+      { label: "NEIN — nicht zuständig", next: "weiterleitung", icon: "❌", cls: "nein" }
+    ]
+  },
+  weiterleitung: {
+    phase: "Weiterleitung",
+    title: "Zuständigen erfragen",
+    text: "Können Sie mir sagen, in welchem Zuständigkeitsbereich Hotelbuchungen in Ihrer Firma liegen?",
+    isEnd: true,
+    action: "Name, Telefon & Emailadresse aufnehmen"
+  },
+  pitch: {
+    phase: "Pitch",
+    title: "Pitch & Qualifizierungsfrage",
+    text: "Ich rufe Sie an, weil wir Unternehmen wie Ihrem helfen, bei der Planung von Firmenveranstaltungen schnell und unkompliziert das passende Hotel zu finden – und das völlig kostenfrei.\n\nWie organisieren Sie aktuell Ihre Veranstaltungen oder Hotelbuchungen? Bekommen Sie problemlos passende Angebote – oder kostet das eher viel Zeit und Nerven?",
+    options: [
+      { label: "Wir machen das selbst / mit bestehendem Partner", next: "einwand_selbst", icon: "🤝", cls: "neutral" },
+      { label: "Kein Interesse / brauche keine Hilfe", next: "einwand_kein_interesse", icon: "❌", cls: "nein" },
+      { label: "Nerviges Thema", next: "nerviges_thema", icon: "⚡", cls: "neutral" }
+    ]
+  },
+  einwand_selbst: {
+    phase: "Einwand — Wir machen das selbst / mit bestehendem Partner",
+    title: "Gegenfrage stellen",
+    text: "Das heißt, Sie haben für jede Anfrage sofort transparente Angebote auf dem Tisch – inklusive Preisvergleich und Verfügbarkeiten – ohne dass Sie selbst zig Hotels anrufen müssen?",
+    options: [
+      { label: "JA", next: "selbst_ja", icon: "✅", cls: "ja" },
+      { label: "NEIN", next: "abschluss_pitch", icon: "❌", cls: "nein" }
+    ]
+  },
+  selbst_ja: {
+    phase: "Ja — bestens aufgestellt",
+    title: "Zufriedenheit prüfen",
+    text: "Super, dann sind Sie bestens aufgestellt. Darf ich trotzdem kurz fragen: Wie zufrieden Sie mit Geschwindigkeit und Konditionen sind?",
+    options: [
+      { label: "JA — sehr zufrieden", next: "sehr_zufrieden", icon: "✅", cls: "ja" },
+      { label: "NEIN — nicht vollständig zufrieden", next: "abschluss_pitch", icon: "❌", cls: "nein" }
+    ]
+  },
+  sehr_zufrieden: {
+    phase: "Sehr zufrieden",
+    title: "Als Backup positionieren",
+    text: "Das freut mich zu hören, es ist immer ein gutes Zeichen, wenn die Zusammenarbeit so gut läuft. Trotzdem ist es oft hilfreich, noch einen zusätzlichen Ansprechpartner in petto zu haben. Darf ich Ihnen meinen Kontakt zusenden, damit Sie sich bei Bedarf melden können?",
+    options: [{ label: "JA — Teamscall vereinbaren", next: "termin_bestaetigen", icon: "✅", cls: "ja" }]
+  },
+  abschluss_pitch: {
+    phase: "Nicht zufrieden — Pitch",
+    title: "Mehrwert darstellen",
+    text: "Genau hier setzen wir an – wir übernehmen die Hotelsuche komplett für Sie und das kostenfrei. Wir sparen Ihnen nicht nur Zeit und Nerven, sondern können durch unsere Einkaufskraft auch sehr gute Konditionen bekommen. Hätten Sie diese oder nächste Woche 15 Minuten Zeit, dass ich Ihnen einmal in Ruhe vorstellen kann, wie die Lösung genau aussieht?",
+    options: [{ label: "Weiter zum Abschlusspfad", next: "terminanfrage", icon: "→", cls: "neutral" }]
+  },
+  einwand_kein_interesse: {
+    phase: "Einwand — Kein Interesse / brauche keine Hilfe",
+    title: "Einwandbehandlung",
+    text: "Kann ich nachvollziehen. Allerdings ersparen Sie sich mit uns jede Menge Zeit, weil wir die Angebote bündeln, vergleichen und Sie sofort entscheiden können – ohne zusätzliche Kosten. Darf ich Ihnen einmal mehr Infos zu unserem Service zusenden?",
+    options: [
+      { label: "JA — Infos zusenden", next: "end_infos", icon: "✅", cls: "ja" },
+      { label: "NEIN", next: "end_verabschiedung", icon: "❌", cls: "nein" }
+    ]
+  },
+  end_infos: {
+    phase: "Abschluss",
+    title: "Infos zusenden",
+    isEnd: true,
+    action: "Name, Telefon & Emailadresse aufnehmen"
+  },
+  nerviges_thema: {
+    phase: "Nerviges Thema",
+    title: "Mehrwert trotzdem darstellen",
+    text: "Genau hier setzen wir an – wir übernehmen die Hotelsuche komplett für Sie und das kostenfrei. Wir sparen Ihnen nicht nur Zeit und Nerven, sondern können durch unsere Einkaufskraft auch sehr gute Konditionen bekommen. Hätten Sie diese oder nächste Woche 15 Minuten Zeit, dass ich Ihnen einmal in Ruhe vorstellen kann, wie die Lösung genau aussieht?",
+    options: [{ label: "Weiter zum Abschlusspfad", next: "terminanfrage", icon: "→", cls: "neutral" }]
+  },
+  terminanfrage: {
+    phase: "Abschlusspfad",
+    title: "Terminanfrage",
+    text: "Danke für die Offenheit. Am besten sprechen wir das einmal in Ruhe durch. Dann können Sie mir genauer schildern, was Ihnen wichtig ist, und ich zeige Ihnen, wie wir das bei unseren Kunden lösen.\n\nWann haben Sie in den nächsten Tagen 15 Minuten Zeit für einen Termin?",
+    options: [
+      { label: "JA — Termin möglich", next: "termin_bestaetigen", icon: "✅", cls: "ja" },
+      { label: "NEIN — kein Termin möglich", next: "end_kein_termin", icon: "❌", cls: "nein" }
+    ]
+  },
+  termin_bestaetigen: {
+    phase: "Abschluss — Termin",
+    title: "Termin bestätigen",
+    text: "Wunderbar, dann sende ich Ihnen gleich einen Teamscall zu und wir sprechen am [Datum/Uhrzeit] kurz. Danach sehen wir, wie gut unser Service zu Ihnen passt.",
+    isEnd: true,
+    action: "✓ Datum + Uhrzeit festhalten\n✓ Teamscall-Link senden\n✓ Name, Telefon & Email aufnehmen\n✓ Kanal + Ergebnis im CRM notieren\n✓ Kontaktdaten + Homepage schicken"
+  },
+  end_kein_termin: {
+    phase: "Abschluss — Kein Termin",
+    title: "Infomaterial zusenden",
+    text: "Auch wenn kurzfristig kein Termin möglich ist, sende ich Ihnen bereits unser Infomaterial zu, sodass Sie sich in Ruhe einen Einblick verschaffen können. Melden Sie sich jederzeit gern bei uns! Ich bedanke mich herzlich für Ihre Zeit und wünsche noch einen angenehmen Tag. Auf Wiederhören!",
+    isEnd: true,
+    action: "Emailadresse aufnehmen & Infomaterial zusenden\nFollow-up in 2–4 Wochen einplanen"
+  },
+  end_verabschiedung: {
+    phase: "Abschluss",
+    title: "Freundliche Verabschiedung",
+    isEnd: true,
+    action: "CRM: Status → 'kein Interesse' · in 6 Monaten ggf. erneut angehen"
+  }
+};
+
+let history = [], current = 'start';
+const totalDepth = 8;
+
+function render() {
+  const s = steps[current];
+  const prog = document.getElementById('progress');
+  prog.innerHTML = '';
+  for (let i = 0; i < totalDepth; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < history.length ? ' done' : i === history.length ? ' active' : '');
+    prog.appendChild(d);
+  }
+  const bc = document.getElementById('breadcrumb');
+  if (history.length === 0) { bc.innerHTML = ''; }
+  else {
+    const parts = history.map(h => `<span>${steps[h.step]?.phase || h.step}</span>`);
+    parts.push(`<span style="color:#1a1a18;font-weight:500">${s.phase}</span>`);
+    bc.innerHTML = parts.join(' <span>›</span> ');
+  }
+  let html = '';
+  if (history.length > 0) html += `<button class="back-btn" onclick="goBack()">← Zurück</button>`;
+  html += `<div class="card"><div class="phase">${s.phase}</div><div class="title">${s.title}</div>`;
+  if (s.text) {
+    const esc = s.text.replace(/\n/g, '<br>');
+    html += `<div class="text-box"><button class="copy-btn" onclick="copyText(this)">Kopieren</button>${esc}</div>`;
+  }
+  if (s.tip) html += `<div class="tip">${s.tip}</div>`;
+  if (s.isEnd) {
+    const actionEsc = s.action ? s.action.replace(/\n/g, '<br>') : '';
+    html += `</div><div class="end-box"><div class="end-label">Nächste Aktion</div><div class="action-box">${actionEsc}</div></div>`;
+    html += `<button class="restart-btn" onclick="restart()">↺ Neues Gespräch starten</button>`;
+  } else {
+    html += `<div class="actions">`;
+    s.options.forEach(opt => {
+      html += `<button class="btn ${opt.cls||''}" onclick="go('${opt.next}')">${opt.icon ? opt.icon + ' ' : ''}${opt.label}</button>`;
+    });
+    html += `</div></div>`;
+  }
+  document.getElementById('content').innerHTML = html;
+}
+
+function copyText(btn) {
+  const box = btn.parentElement;
+  const text = box.innerText.replace('Kopieren', '').trim();
+  navigator.clipboard && navigator.clipboard.writeText(text);
+  btn.textContent = '✓ Kopiert';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Kopieren'; btn.classList.remove('copied'); }, 2000);
+}
+
+function go(next) { history.push({ step: current }); current = next; render(); }
+function goBack() { if (history.length) { current = history.pop().step; render(); } }
+function restart() { history = []; current = 'start'; render(); }
+
+render();
+</script>
+
+<hr class="section-divider">
+<div class="section-title">Gesprächsstrang — Übersicht auf einen Blick</div>
+
+<div class="overview">
+  <div class="legend">
+    <div class="li"><div class="ld" style="background:#AFA9EC"></div> Einstieg</div>
+    <div class="li"><div class="ld" style="background:#85B7EB"></div> Entscheidungsfrage</div>
+    <div class="li"><div class="ld" style="background:#5DCAA5"></div> Skripttext (sprechen)</div>
+    <div class="li"><div class="ld" style="background:#EF9F27"></div> Aktion / nächster Schritt</div>
+    <div class="li"><div class="ld" style="background:#B4B2A9"></div> Gesprächsende</div>
+  </div>
+
+  <div class="einstiege">
+    <div>
+      <div class="einst-label">Einstieg A — Kalt</div>
+      <div class="ov-node n-start">„Guten Tag Frau/Herr [Name], mein Name ist Josephine Bütefisch von Die Hotelspezialisten — wir helfen Unternehmen dabei, Hotels und Locations für Firmenveranstaltungen schnell und völlig kostenfrei zu finden."</div>
+    </div>
+    <div>
+      <div class="einst-label">Einstieg B — Nach LinkedIn</div>
+      <div class="ov-node n-start">„Guten Tag Frau/Herr [Name], mein Name ist Josephine Bütefisch von Die Hotelspezialisten. Ich hatte Ihnen vor einiger Zeit eine kurze Nachricht auf LinkedIn geschickt, nun wollte ich mich einmal persönlich melden."</div>
+    </div>
+    <div>
+      <div class="einst-label">Einstieg C — Nach Email/Kontakt</div>
+      <div class="ov-node n-start">„Guten Tag Frau/Herr [Name], mein Name ist Josephine Bütefisch von Die Hotelspezialisten. Wir hatten bereits kurz Kontakt — ich wollte mich nun einmal persönlich melden."</div>
+    </div>
+  </div>
+
+  <div class="merge-bar"><div class="merge-line"></div>ab hier ein Pfad für alle drei Einstiege<div class="merge-line"></div></div>
+
+  <div class="v"><div class="vline"></div></div>
+  <div class="center-box">
+    <div class="ov-node n-q"><div class="ov-label">Qualifizierung 1</div>Darf ich fragen, ob sie in ihrem Unternehmen regelmäßig Veranstaltungen oder Meetings außerhalb des Büros organisieren?</div>
+  </div>
+  <div class="fork">
+    <div class="fork-stem"><div class="vline"></div></div>
+    <div class="fork-bar-wrap"><div class="fork-bar-left"></div><div class="fork-mid"></div><div class="fork-bar-right"></div></div>
+    <div class="fork-cols">
+      <div class="fork-col">
+        <div class="vline"></div><span class="tag tag-ja">✓ Ja</span><div class="vline"></div>
+        <div class="fork-col-inner"><div class="ov-node n-act" style="text-align:center;font-size:11px;font-style:italic;">→ weiter zu Qualifizierung 2 ↓</div></div>
+      </div>
+      <div class="fork-col">
+        <div class="vline"></div><span class="tag tag-nein">✗ Nein</span><div class="vline"></div>
+        <div class="fork-col-inner">
+          <div class="ov-node n-q"><div class="ov-label">Auffangfrage</div>Kommt es vor, dass Sie Zimmerkontingente in Hotels für Gruppen buchen z. B. für Messen oder Weihnachtsfeiern?</div>
+          <div class="fork">
+            <div class="fork-stem"><div class="vline"></div></div>
+            <div class="fork-bar-wrap"><div class="fork-bar-left"></div><div class="fork-mid"></div><div class="fork-bar-right"></div></div>
+            <div class="fork-cols">
+              <div class="fork-col">
+                <div class="vline"></div><span class="tag tag-ja">✓ Ja</span><div class="vline"></div>
+                <div class="fork-col-inner"><div class="ov-node n-act" style="text-align:center;font-size:11px;font-style:italic;">→ weiter zu Qualifizierung 2 ↓</div></div>
+              </div>
+              <div class="fork-col">
+                <div class="vline"></div><span class="tag tag-nein">✗ Nein</span><div class="vline"></div>
+                <div class="fork-col-inner">
+                  <div class="ov-node n-say">„Alles klar, danke für Ihre Zeit! Falls es sich irgendwann ändert, können Sie mich gern ansprechen. Darf ich Ihnen meinen Kontakt zusenden, damit Sie sich bei Bedarf ansprechen können?"</div>
+                  <div class="ov-node n-end">→ Emailadresse aufnehmen &amp; Homepage schicken</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ov-divider"></div>
+  <div class="v"><div class="vline"></div></div>
+  <div class="center-box">
+    <div class="ov-node n-q"><div class="ov-label">Qualifizierung 2 — Zuständigkeit</div>Sind Sie in Ihrem Unternehmen auch für die Buchung von Hotels und Locations bei Firmenveranstaltungen zuständig?</div>
+  </div>
+  <div class="fork">
+    <div class="fork-stem"><div class="vline"></div></div>
+    <div class="fork-bar-wrap"><div class="fork-bar-left"></div><div class="fork-mid"></div><div class="fork-bar-right"></div></div>
+    <div class="fork-cols">
+      <div class="fork-col">
+        <div class="vline"></div><span class="tag tag-ja">✓ Ja — zuständig</span><div class="vline"></div>
+        <div class="fork-col-inner"><div class="ov-node n-act" style="text-align:center;font-size:11px;font-style:italic;">→ weiter zum Pitch ↓</div></div>
+      </div>
+      <div class="fork-col">
+        <div class="vline"></div><span class="tag tag-nein">✗ Nein — nicht zuständig</span><div class="vline"></div>
+        <div class="fork-col-inner">
+          <div class="ov-node n-say">„Können Sie mir sagen, in welchem Zuständigkeitsbereich Hotelbuchungen in Ihrer Firma liegen?"</div>
+          <div class="ov-node n-end">→ Name, Telefon &amp; Emailadresse aufnehmen</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ov-divider"></div>
+  <div class="v"><div class="vline"></div></div>
+  <div class="center-box">
+    <div class="ov-node n-say"><div class="ov-label">Pitch</div>„Ich rufe Sie an, weil wir Unternehmen wie Ihrem helfen, bei der Planung von Firmenveranstaltungen schnell und unkompliziert das passende Hotel zu finden – und das völlig kostenfrei.<br><br>Wie organisieren Sie aktuell Ihre Veranstaltungen oder Hotelbuchungen? Bekommen Sie problemlos passende Angebote – oder kostet das eher viel Zeit und Nerven?"</div>
+  </div>
+
+  <div class="ov-divider"></div>
+  <div class="v"><div class="vline"></div></div>
+  <div class="center-box">
+    <div class="ov-node n-q"><div class="ov-label">Falls „Wir machen das selbst / mit bestehendem Partner"</div>„Das heißt, Sie haben für jede Anfrage sofort transparente Angebote auf dem Tisch – inklusive Preisvergleich und Verfügbarkeiten – ohne dass Sie selbst zig Hotels anrufen müssen?"</div>
+  </div>
+  <div class="fork">
+    <div class="fork-stem"><div class="vline"></div></div>
+    <div class="fork-bar-wrap"><div class="fork-bar-left"></div><div class="fork-mid"></div><div class="fork-bar-right"></div></div>
+    <div class="fork-cols">
+      <div class="fork-col">
+        <div class="vline"></div><span class="tag tag-ja">✓ Ja</span><div class="vline"></div>
+        <div class="fork-col-inner">
+          <div class="ov-node n-say">„Super, dann sind Sie bestens aufgestellt. Darf ich trotzdem kurz fragen: Wie zufrieden Sie mit Geschwindigkeit und Konditionen sind?"</div>
+          <div class="vline" style="margin:0 auto;"></div>
+          <div class="fork">
+            <div class="fork-bar-wrap"><div class="fork-bar-left"></div><div class="fork-mid"></div><div class="fork-bar-right"></div></div>
+            <div class="fork-cols">
+              <div class="fork-col">
+                <div class="vline"></div><span class="tag tag-ja">✓ Ja — sehr zufrieden</span><div class="vline"></div>
+                <div class="fork-col-inner">
+                  <div class="ov-node n-say">„Das freut mich zu hören, es ist immer ein gutes Zeichen, wenn die Zusammenarbeit so gut läuft. Trotzdem ist es oft hilfreich, noch einen zusätzlichen Ansprechpartner in petto zu haben. Darf ich Ihnen meinen Kontakt zusenden, damit Sie sich bei Bedarf melden können?"</div>
+                  <div class="ov-node n-act">„Wunderbar, dann sende ich Ihnen gleich einen Teamscall zu und wir sprechen am [Datum/Uhrzeit] kurz. Danach sehen wir, wie gut unser Service zu Ihnen passt."</div>
+                </div>
+              </div>
+              <div class="fork-col">
+                <div class="vline"></div><span class="tag tag-nein">✗ Nein — nicht vollständig zufrieden</span><div class="vline"></div>
+                <div class="fork-col-inner">
+                  <div class="ov-node n-say">„Genau hier setzen wir an – wir übernehmen die Hotelsuche komplett für Sie und das kostenfrei. Wir sparen Ihnen nicht nur Zeit und Nerven, sondern können durch unsere Einkaufskraft auch sehr gute Konditionen bekommen. Hätten Sie diese oder nächste Woche 15 Minuten Zeit, dass ich Ihnen einmal in Ruhe vorstellen kann, wie die Lösung genau aussieht?"</div>
+                  <div class="ov-node n-act" style="text-align:center;font-size:11px;font-style:italic;">→ weiter zum Abschlusspfad ↓</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fork-col">
+        <div class="vline"></div><span class="tag tag-nein">✗ Nein</span><div class="vline"></div>
+        <div class="fork-col-inner">
+          <div class="ov-node n-say">„Genau hier setzen wir an – wir übernehmen die Hotelsuche komplett für Sie und das kostenfrei. Wir sparen Ihnen nicht nur Zeit und Nerven, sondern können durch unsere Einkaufskraft auch sehr gute Konditionen bekommen. Hätten Sie diese oder nächste Woche 15 Minuten Zeit, dass ich Ihnen einmal in Ruhe vorstellen kann, wie die Lösung genau aussieht?"</div>
+          <div class="ov-node n-act" style="text-align:center;font-size:11px;font-style:italic;">→ weiter zum Abschlusspfad ↓</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ov-divider"></div>
+  <div class="v"><div class="vline"></div></div>
+  <div class="center-box">
+    <div class="ov-node n-q"><div class="ov-label">Einwand — Kein Interesse / brauche keine Hilfe</div></div>
+  </div>
+  <div class="fork">
+    <div class="fork-stem"><div class="vline"></div></div>
+    <div class="fork-bar-wrap"><div class="fork-bar-left"></div><div class="fork-mid"></div><div class="fork-bar-right"></div></div>
+    <div class="fork-cols">
+      <div class="fork-col">
+        <div class="vline"></div><span class="tag tag-info">Einwandbehandlung</span><div class="vline"></div>
+        <div class="fork-col-inner">
+          <div class="ov-node n-say">„Kann ich nachvollziehen. Allerdings ersparen Sie sich mit uns jede Menge Zeit, weil wir die Angebote bündeln, vergleichen und Sie sofort entscheiden können – ohne zusätzliche Kosten. Darf ich Ihnen einmal mehr Infos zu unserem Service zusenden?"</div>
+          <div class="ov-node n-end">→ Name, Telefon &amp; Emailadresse aufnehmen</div>
+        </div>
+      </div>
+      <div class="fork-col">
+        <div class="vline"></div><span class="tag tag-nein">Nerviges Thema</span><div class="vline"></div>
+        <div class="fork-col-inner">
+          <div class="ov-node n-say">„Genau hier setzen wir an – wir übernehmen die Hotelsuche komplett für Sie und das kostenfrei. Wir sparen Ihnen nicht nur Zeit und Nerven, sondern können durch unsere Einkaufskraft auch sehr gute Konditionen bekommen. Hätten Sie diese oder nächste Woche 15 Minuten Zeit, dass ich Ihnen einmal in Ruhe vorstellen kann, wie die Lösung genau aussieht?"</div>
+          <div class="ov-node n-act" style="text-align:center;font-size:11px;font-style:italic;">→ weiter zum Abschlusspfad ↓</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ov-divider"></div>
+  <div class="v"><div class="vline"></div></div>
+  <div class="center-box">
+    <div class="ov-node n-say"><div class="ov-label">Abschlusspfad — Interesse vorhanden</div>„Danke für die Offenheit. Am besten sprechen wir das einmal in Ruhe durch. Dann können Sie mir genauer schildern, was Ihnen wichtig ist, und ich zeige Ihnen, wie wir das bei unseren Kunden lösen.<br><br>Wann haben Sie in den nächsten Tagen 15 Minuten Zeit für einen Termin?"</div>
+  </div>
+  <div class="fork">
+    <div class="fork-stem"><div class="vline"></div></div>
+    <div class="fork-bar-wrap"><div class="fork-bar-left"></div><div class="fork-mid"></div><div class="fork-bar-right"></div></div>
+    <div class="fork-cols">
+      <div class="fork-col">
+        <div class="vline"></div><span class="tag tag-ja">✓ Termin möglich</span><div class="vline"></div>
+        <div class="fork-col-inner">
+          <div class="ov-node n-say">„Wunderbar, dann sende ich Ihnen gleich einen Teamscall zu und wir sprechen am [Datum/Uhrzeit] kurz. Danach sehen wir, wie gut unser Service zu Ihnen passt."</div>
+          <div class="ov-node n-act"><div class="ov-label">CRM</div>✓ Name, Telefon &amp; Email aufnehmen<br>✓ Kanal + Ergebnis notieren<br>✓ Nächsten Schritt terminieren<br>✓ Kontaktdaten + Homepage schicken</div>
+        </div>
+      </div>
+      <div class="fork-col">
+        <div class="vline"></div><span class="tag tag-nein">✗ Kein Termin möglich</span><div class="vline"></div>
+        <div class="fork-col-inner">
+          <div class="ov-node n-say">„Auch wenn kurzfristig kein Termin möglich ist, sende ich Ihnen bereits unser Infomaterial zu, sodass Sie sich in Ruhe einen Einblick verschaffen können. Melden Sie sich jederzeit gern bei uns! Ich bedanke mich herzlich für Ihre Zeit und wünsche noch einen angenehmen Tag. Auf Wiederhören!"</div>
+          <div class="ov-node n-end">→ Emailadresse aufnehmen &amp; Infomaterial zusenden</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
