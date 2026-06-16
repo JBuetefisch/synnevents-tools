@@ -108,35 +108,35 @@ const steps = {
   },
   tel_kalt: {
     phase: "Einstieg A — Kalt",
-    title: "Vorstellung",
-    text: "Guten Tag Frau/Herr [Name], mein Name ist Josephine Bütefisch von Die Hotelspezialisten — wir helfen Unternehmen dabei, Hotels und Locations für Firmenveranstaltungen schnell und völlig kostenfrei zu finden.",
-    options: [{ label: "Weiter zu Qualifizierung 1", next: "q1", icon: "→", cls: "neutral" }]
+    title: "Vorstellung & Qualifizierung 1",
+    text: "Hallo, mein Name ist Josephine Bütefisch von Die Hotelspezialisten — wir helfen Unternehmen dabei, Hotels und Locations für Firmenveranstaltungen schnell und völlig kostenfrei zu finden.\n\nDarf ich fragen, ob Sie in Ihrem Unternehmen regelmäßig Veranstaltungen oder Meetings außerhalb der eigenen Räumlichkeiten organisieren?",
+    options: [
+      { label: "JA", next: "q2", icon: "✅", cls: "ja" },
+      { label: "NEIN", next: "q1_auffang", icon: "❌", cls: "nein" }
+    ]
   },
   tel_linkedin: {
     phase: "Einstieg B — Nach LinkedIn",
-    title: "Vorstellung",
-    text: "Guten Tag Frau/Herr [Name], mein Name ist Josephine Bütefisch von Die Hotelspezialisten. Ich hatte Ihnen vor einiger Zeit eine kurze Nachricht auf LinkedIn geschickt, nun wollte ich mich einmal persönlich melden.",
-    options: [{ label: "Weiter zu Qualifizierung 1", next: "q1", icon: "→", cls: "neutral" }]
+    title: "Vorstellung & Qualifizierung 1",
+    text: "Hallo Frau/Herr [Name], mein Name ist Josephine Bütefisch von Die Hotelspezialisten. Ich hatte Ihnen vor einiger Zeit eine kurze Nachricht auf LinkedIn geschickt, nun wollte ich mich einmal persönlich melden.\n\nDarf ich fragen, ob Sie in Ihrem Unternehmen regelmäßig Veranstaltungen oder Meetings außerhalb der eigenen Räumlichkeiten organisieren?",
+    options: [
+      { label: "JA", next: "q2", icon: "✅", cls: "ja" },
+      { label: "NEIN", next: "q1_auffang", icon: "❌", cls: "nein" }
+    ]
   },
   tel_email: {
     phase: "Einstieg C — Nach Email/Kontakt",
-    title: "Vorstellung",
-    text: "Guten Tag Frau/Herr [Name], mein Name ist Josephine Bütefisch von Die Hotelspezialisten. Wir hatten bereits kurz Kontakt — ich wollte mich nun einmal persönlich melden.",
-    options: [{ label: "Weiter zu Qualifizierung 1", next: "q1", icon: "→", cls: "neutral" }]
-  },
-  q1: {
-    phase: "Qualifizierung 1",
-    title: "Veranstaltungen prüfen",
-    text: "Darf ich fragen, ob sie in ihrem Unternehmen regelmäßig Veranstaltungen oder Meetings außerhalb des Büros organisieren?",
+    title: "Vorstellung & Qualifizierung 1",
+    text: "Hallo Frau/Herr [Name], mein Name ist Josephine Bütefisch von Die Hotelspezialisten. Wir hatten bereits kurz Kontakt — ich wollte mich nun einmal persönlich melden.\n\nDarf ich fragen, ob Sie in Ihrem Unternehmen regelmäßig Veranstaltungen oder Meetings außerhalb der eigenen Räumlichkeiten organisieren?",
     options: [
       { label: "JA", next: "q2", icon: "✅", cls: "ja" },
       { label: "NEIN", next: "q1_auffang", icon: "❌", cls: "nein" }
     ]
   },
   q1_auffang: {
-    phase: "Qualifizierung 1 — Auffangfrage",
+    phase: "Auffangfrage",
     title: "Zimmerkontingente prüfen",
-    text: "Kommt es vor, dass Sie Zimmerkontingente in Hotels für Gruppen buchen z. B. für Messen oder Weihnachtsfeiern?",
+    text: "Ah, okay. Kommt es denn aber vor, dass Sie Zimmerkontingente in Hotels für Gruppen buchen, zum Beispiel für Messen oder Weihnachtsfeiern?",
     options: [
       { label: "JA", next: "q2", icon: "✅", cls: "ja" },
       { label: "NEIN", next: "end_kein_bedarf", icon: "❌", cls: "nein" }
@@ -145,14 +145,14 @@ const steps = {
   end_kein_bedarf: {
     phase: "Abschluss",
     title: "Kein Bedarf",
-    text: "Alles klar, danke für Ihre Zeit! Falls es sich irgendwann ändert, können Sie mich gern ansprechen. Darf ich Ihnen meinen Kontakt zusenden, damit Sie sich bei Bedarf ansprechen können?",
+    text: "Auch Nein, okay. Trotzdem herzlichen Dank für Ihre Zeit. Und falls sich irgendwann etwas daran ändern sollte, können Sie mich gerne ansprechen. Darf ich Ihnen hierfür meine Kontaktdaten zusenden, sodass Sie mich für den Fall der Fälle ansprechen können?",
     isEnd: true,
     action: "Emailadresse aufnehmen & Homepage schicken"
   },
   q2: {
     phase: "Qualifizierung 2 — Zuständigkeit",
     title: "Zuständigkeit klären",
-    text: "Sind Sie in Ihrem Unternehmen auch für die Buchung von Hotels und Locations bei Firmenveranstaltungen zuständig?",
+    text: "Ja super! Sind Sie denn auch die Person im Unternehmen, die für die Buchung von Hotels und Locations bei Firmenveranstaltungen zuständig ist?",
     options: [
       { label: "JA — zuständig", next: "pitch", icon: "✅", cls: "ja" },
       { label: "NEIN — nicht zuständig", next: "weiterleitung", icon: "❌", cls: "nein" }
@@ -161,14 +161,14 @@ const steps = {
   weiterleitung: {
     phase: "Weiterleitung",
     title: "Zuständigen erfragen",
-    text: "Können Sie mir sagen, in welchem Zuständigkeitsbereich Hotelbuchungen in Ihrer Firma liegen?",
+    text: "Alles klar. Können Sie mir denn sagen, mit wem ich hierzu sprechen darf? Wer ist normalerweise für Hotelbuchungen in Ihrer Firma zuständig?",
     isEnd: true,
     action: "Name, Telefon & Emailadresse aufnehmen"
   },
   pitch: {
     phase: "Pitch",
     title: "Pitch & Qualifizierungsfrage",
-    text: "Ich rufe Sie an, weil wir Unternehmen wie Ihrem helfen, bei der Planung von Firmenveranstaltungen schnell und unkompliziert das passende Hotel zu finden – und das völlig kostenfrei.\n\nWie organisieren Sie aktuell Ihre Veranstaltungen oder Hotelbuchungen? Bekommen Sie problemlos passende Angebote – oder kostet das eher viel Zeit und Nerven?",
+    text: "Sie fragen sich bestimmt, weshalb ich mich melde mit all den Fragen. Und zwar geht's darum, dass wir Unternehmen wie Ihrem helfen bei der Planung von Firmenveranstaltungen schnell und unkompliziert das passende Hotel, die passende Location oder auch den passenden Dienstleister zu finden und das völlig kostenfrei.\n\nWie organisieren Sie denn aktuell Ihre Veranstaltungen oder Hotelbuchungen? Bekommen Sie problemlos passende Angebote oder ist das eher zeitaufwändig und nervig?",
     options: [
       { label: "Wir machen das selbst / mit bestehendem Partner", next: "einwand_selbst", icon: "🤝", cls: "neutral" },
       { label: "Kein Interesse / brauche keine Hilfe", next: "einwand_kein_interesse", icon: "❌", cls: "nein" },
@@ -178,7 +178,7 @@ const steps = {
   einwand_selbst: {
     phase: "Einwand — Wir machen das selbst / mit bestehendem Partner",
     title: "Gegenfrage stellen",
-    text: "Das heißt, Sie haben für jede Anfrage sofort transparente Angebote auf dem Tisch – inklusive Preisvergleich und Verfügbarkeiten – ohne dass Sie selbst zig Hotels anrufen müssen?",
+    text: "Verstehe. Würden Sie denn sagen, dass Sie für jede Anfrage direkt transparente Angebote auf dem Tisch haben, inklusive Preisvergleich und Verfügbarkeiten – ohne dass Sie selbst zig Hotels anrufen müssen?",
     options: [
       { label: "JA", next: "selbst_ja", icon: "✅", cls: "ja" },
       { label: "NEIN", next: "abschluss_pitch", icon: "❌", cls: "nein" }
@@ -187,7 +187,7 @@ const steps = {
   selbst_ja: {
     phase: "Ja — bestens aufgestellt",
     title: "Zufriedenheit prüfen",
-    text: "Super, dann sind Sie bestens aufgestellt. Darf ich trotzdem kurz fragen: Wie zufrieden Sie mit Geschwindigkeit und Konditionen sind?",
+    text: "Ich würde sagen, dann sind Sie bestens aufgestellt. Darf ich trotzdem kurz fragen, wie zufrieden Sie sind mit der Geschwindigkeit und den Konditionen, die Sie aktuell bekommen?",
     options: [
       { label: "JA — sehr zufrieden", next: "sehr_zufrieden", icon: "✅", cls: "ja" },
       { label: "NEIN — nicht vollständig zufrieden", next: "abschluss_pitch", icon: "❌", cls: "nein" }
@@ -197,18 +197,25 @@ const steps = {
     phase: "Sehr zufrieden",
     title: "Als Backup positionieren",
     text: "Das freut mich zu hören, es ist immer ein gutes Zeichen, wenn die Zusammenarbeit so gut läuft. Trotzdem ist es oft hilfreich, noch einen zusätzlichen Ansprechpartner in petto zu haben. Darf ich Ihnen meinen Kontakt zusenden, damit Sie sich bei Bedarf melden können?",
-    options: [{ label: "JA — Teamscall vereinbaren", next: "termin_bestaetigen", icon: "✅", cls: "ja" }]
+    options: [{ label: "JA — Teamscall vereinbaren", next: "termin_selbst", icon: "✅", cls: "ja" }]
+  },
+  termin_selbst: {
+    phase: "Termin vereinbaren",
+    title: "Teamscall vereinbaren",
+    text: "Wunderbar, wollen wir direkt einen Teamscall vereinbaren, um zu sehen ob unser Service zu Ihnen passt?",
+    isEnd: true,
+    action: "✓ Datum + Uhrzeit festhalten\n✓ Teamscall-Link senden\n✓ Name, Telefon & Email aufnehmen\n✓ Kanal + Ergebnis im CRM notieren\n✓ Kontaktdaten + Homepage schicken"
   },
   abschluss_pitch: {
     phase: "Nicht zufrieden — Pitch",
     title: "Mehrwert darstellen",
-    text: "Genau hier setzen wir an – wir übernehmen die Hotelsuche komplett für Sie und das kostenfrei. Wir sparen Ihnen nicht nur Zeit und Nerven, sondern können durch unsere Einkaufskraft auch sehr gute Konditionen bekommen. Hätten Sie diese oder nächste Woche 15 Minuten Zeit, dass ich Ihnen einmal in Ruhe vorstellen kann, wie die Lösung genau aussieht?",
+    text: "Dann würde ich sagen, setzen wir genau hier an, denn wir übernehmen die Hotelsuche komplett für Sie und das kostenfrei. Wir sparen Ihnen nicht nur Zeit und Nerven, sondern können häufig durch unsere Einkaufskraft auch sehr gute Konditionen bekommen. Hätten Sie denn diese oder in der kommenden Woche Zeit, 15 Minuten mal in Ruhe darüber zu sprechen, wie eine gute Lösung für Sie aussehen kann?",
     options: [{ label: "Weiter zum Abschlusspfad", next: "terminanfrage", icon: "→", cls: "neutral" }]
   },
   einwand_kein_interesse: {
     phase: "Einwand — Kein Interesse / brauche keine Hilfe",
     title: "Einwandbehandlung",
-    text: "Kann ich nachvollziehen. Allerdings ersparen Sie sich mit uns jede Menge Zeit, weil wir die Angebote bündeln, vergleichen und Sie sofort entscheiden können – ohne zusätzliche Kosten. Darf ich Ihnen einmal mehr Infos zu unserem Service zusenden?",
+    text: "Kann ich total nachvollziehen. Ich mag das auch nicht, unvorbereitet angerufen zu werden. Trotzdem möchte ich noch mal daran erinnern, dass Sie sich eine Menge Zeit sparen, weil wir die Angebote bündeln, wir vergleichen sie und Sie können unmittelbar entscheiden, ohne zusätzliche Kosten. Darf ich Ihnen trotz der Skepsis mehr Informationen zu unserem Service zusenden?",
     options: [
       { label: "JA — Infos zusenden", next: "end_infos", icon: "✅", cls: "ja" },
       { label: "NEIN", next: "end_verabschiedung", icon: "❌", cls: "nein" }
@@ -223,13 +230,13 @@ const steps = {
   nerviges_thema: {
     phase: "Nerviges Thema",
     title: "Mehrwert trotzdem darstellen",
-    text: "Genau hier setzen wir an – wir übernehmen die Hotelsuche komplett für Sie und das kostenfrei. Wir sparen Ihnen nicht nur Zeit und Nerven, sondern können durch unsere Einkaufskraft auch sehr gute Konditionen bekommen. Hätten Sie diese oder nächste Woche 15 Minuten Zeit, dass ich Ihnen einmal in Ruhe vorstellen kann, wie die Lösung genau aussieht?",
+    text: "Glücklicherweise ist es nicht nervig für uns, deswegen melden wir uns bei Ihnen. Denn wir übernehmen gern die Hotel-/Locationsuche für Sie und das kostenfrei. Wir sparen Ihnen nicht nur Zeit und Nerven, sondern können durch unsere Einkaufskraft auch sehr gute Konditionen bekommen. Hätten Sie denn diese Woche oder in der kommenden Woche 15 Minuten Zeit, sodass ich Ihnen einmal in Ruhe vorstellen kann, wie eine Lösung für Ihr Unternehmen aussehen kann?",
     options: [{ label: "Weiter zum Abschlusspfad", next: "terminanfrage", icon: "→", cls: "neutral" }]
   },
   terminanfrage: {
     phase: "Abschlusspfad",
     title: "Terminanfrage",
-    text: "Danke für die Offenheit. Am besten sprechen wir das einmal in Ruhe durch. Dann können Sie mir genauer schildern, was Ihnen wichtig ist, und ich zeige Ihnen, wie wir das bei unseren Kunden lösen.\n\nWann haben Sie in den nächsten Tagen 15 Minuten Zeit für einen Termin?",
+    text: "Cool, danke, dass Sie so offen waren. Gerne können wir das mal in Ruhe durchsprechen und dann können Sie mir genauer schildern, was Ihnen wichtig ist und ich zeige Ihnen, wie wir diese Themen bei unseren aktuellen Kunden lösen.\n\nWelche Tage und welche Uhrzeiten würden Ihnen denn in den kommenden zwei Wochen zusagen?",
     options: [
       { label: "JA — Termin möglich", next: "termin_bestaetigen", icon: "✅", cls: "ja" },
       { label: "NEIN — kein Termin möglich", next: "end_kein_termin", icon: "❌", cls: "nein" }
@@ -245,7 +252,7 @@ const steps = {
   end_kein_termin: {
     phase: "Abschluss — Kein Termin",
     title: "Infomaterial zusenden",
-    text: "Auch wenn kurzfristig kein Termin möglich ist, sende ich Ihnen bereits unser Infomaterial zu, sodass Sie sich in Ruhe einen Einblick verschaffen können. Melden Sie sich jederzeit gern bei uns! Ich bedanke mich herzlich für Ihre Zeit und wünsche noch einen angenehmen Tag. Auf Wiederhören!",
+    text: "Schade, dass es in den nächsten zwei Wochen nicht passt. Trotzdem sende ich Ihnen bereits ein bisschen Infomaterial zu, sodass Sie sich schon mal in Ruhe einen Einblick verschaffen können. Darf ich einmal um Ihre E-Mailadresse bitten? Melden Sie sich dann einfach gern bei uns. Ich bedanke mich ganz herzlich für Ihre Zeit und wünsche noch einen angenehmen Tag. Auf Wiederhören.",
     isEnd: true,
     action: "Emailadresse aufnehmen & Infomaterial zusenden\nFollow-up in 2–4 Wochen einplanen"
   },
@@ -329,24 +336,21 @@ render();
   <div class="einstiege">
     <div>
       <div class="einst-label">Einstieg A — Kalt</div>
-      <div class="ov-node n-start">„Guten Tag Frau/Herr [Name], mein Name ist Josephine Bütefisch von Die Hotelspezialisten — wir helfen Unternehmen dabei, Hotels und Locations für Firmenveranstaltungen schnell und völlig kostenfrei zu finden."</div>
+      <div class="ov-node n-start">„Hallo, mein Name ist Josephine Bütefisch von Die Hotelspezialisten — wir helfen Unternehmen dabei, Hotels und Locations für Firmenveranstaltungen schnell und völlig kostenfrei zu finden.<br><br>Darf ich fragen, ob Sie in Ihrem Unternehmen regelmäßig Veranstaltungen oder Meetings außerhalb der eigenen Räumlichkeiten organisieren?"</div>
     </div>
     <div>
       <div class="einst-label">Einstieg B — Nach LinkedIn</div>
-      <div class="ov-node n-start">„Guten Tag Frau/Herr [Name], mein Name ist Josephine Bütefisch von Die Hotelspezialisten. Ich hatte Ihnen vor einiger Zeit eine kurze Nachricht auf LinkedIn geschickt, nun wollte ich mich einmal persönlich melden."</div>
+      <div class="ov-node n-start">„Hallo Frau/Herr [Name], mein Name ist Josephine Bütefisch von Die Hotelspezialisten. Ich hatte Ihnen vor einiger Zeit eine kurze Nachricht auf LinkedIn geschickt, nun wollte ich mich einmal persönlich melden.<br><br>Darf ich fragen, ob Sie in Ihrem Unternehmen regelmäßig Veranstaltungen oder Meetings außerhalb der eigenen Räumlichkeiten organisieren?"</div>
     </div>
     <div>
       <div class="einst-label">Einstieg C — Nach Email/Kontakt</div>
-      <div class="ov-node n-start">„Guten Tag Frau/Herr [Name], mein Name ist Josephine Bütefisch von Die Hotelspezialisten. Wir hatten bereits kurz Kontakt — ich wollte mich nun einmal persönlich melden."</div>
+      <div class="ov-node n-start">„Hallo Frau/Herr [Name], mein Name ist Josephine Bütefisch von Die Hotelspezialisten. Wir hatten bereits kurz Kontakt — ich wollte mich nun einmal persönlich melden.<br><br>Darf ich fragen, ob Sie in Ihrem Unternehmen regelmäßig Veranstaltungen oder Meetings außerhalb der eigenen Räumlichkeiten organisieren?"</div>
     </div>
   </div>
 
   <div class="merge-bar"><div class="merge-line"></div>ab hier ein Pfad für alle drei Einstiege<div class="merge-line"></div></div>
 
   <div class="v"><div class="vline"></div></div>
-  <div class="center-box">
-    <div class="ov-node n-q"><div class="ov-label">Qualifizierung 1</div>Darf ich fragen, ob sie in ihrem Unternehmen regelmäßig Veranstaltungen oder Meetings außerhalb des Büros organisieren?</div>
-  </div>
   <div class="fork">
     <div class="fork-stem"><div class="vline"></div></div>
     <div class="fork-bar-wrap"><div class="fork-bar-left"></div><div class="fork-mid"></div><div class="fork-bar-right"></div></div>
@@ -358,7 +362,7 @@ render();
       <div class="fork-col">
         <div class="vline"></div><span class="tag tag-nein">✗ Nein</span><div class="vline"></div>
         <div class="fork-col-inner">
-          <div class="ov-node n-q"><div class="ov-label">Auffangfrage</div>Kommt es vor, dass Sie Zimmerkontingente in Hotels für Gruppen buchen z. B. für Messen oder Weihnachtsfeiern?</div>
+          <div class="ov-node n-q"><div class="ov-label">Auffangfrage</div>„Ah, okay. Kommt es denn aber vor, dass Sie Zimmerkontingente in Hotels für Gruppen buchen, zum Beispiel für Messen oder Weihnachtsfeiern?"</div>
           <div class="fork">
             <div class="fork-stem"><div class="vline"></div></div>
             <div class="fork-bar-wrap"><div class="fork-bar-left"></div><div class="fork-mid"></div><div class="fork-bar-right"></div></div>
@@ -370,7 +374,7 @@ render();
               <div class="fork-col">
                 <div class="vline"></div><span class="tag tag-nein">✗ Nein</span><div class="vline"></div>
                 <div class="fork-col-inner">
-                  <div class="ov-node n-say">„Alles klar, danke für Ihre Zeit! Falls es sich irgendwann ändert, können Sie mich gern ansprechen. Darf ich Ihnen meinen Kontakt zusenden, damit Sie sich bei Bedarf ansprechen können?"</div>
+                  <div class="ov-node n-say">„Auch Nein, okay. Trotzdem herzlichen Dank für Ihre Zeit. Und falls sich irgendwann etwas daran ändern sollte, können Sie mich gerne ansprechen. Darf ich Ihnen hierfür meine Kontaktdaten zusenden, sodass Sie mich für den Fall der Fälle ansprechen können?"</div>
                   <div class="ov-node n-end">→ Emailadresse aufnehmen &amp; Homepage schicken</div>
                 </div>
               </div>
@@ -384,7 +388,7 @@ render();
   <div class="ov-divider"></div>
   <div class="v"><div class="vline"></div></div>
   <div class="center-box">
-    <div class="ov-node n-q"><div class="ov-label">Qualifizierung 2 — Zuständigkeit</div>Sind Sie in Ihrem Unternehmen auch für die Buchung von Hotels und Locations bei Firmenveranstaltungen zuständig?</div>
+    <div class="ov-node n-q"><div class="ov-label">Qualifizierung 2 — Zuständigkeit</div>„Ja super! Sind Sie denn auch die Person im Unternehmen, die für die Buchung von Hotels und Locations bei Firmenveranstaltungen zuständig ist?"</div>
   </div>
   <div class="fork">
     <div class="fork-stem"><div class="vline"></div></div>
@@ -397,7 +401,7 @@ render();
       <div class="fork-col">
         <div class="vline"></div><span class="tag tag-nein">✗ Nein — nicht zuständig</span><div class="vline"></div>
         <div class="fork-col-inner">
-          <div class="ov-node n-say">„Können Sie mir sagen, in welchem Zuständigkeitsbereich Hotelbuchungen in Ihrer Firma liegen?"</div>
+          <div class="ov-node n-say">„Alles klar. Können Sie mir denn sagen, mit wem ich hierzu sprechen darf? Wer ist normalerweise für Hotelbuchungen in Ihrer Firma zuständig?"</div>
           <div class="ov-node n-end">→ Name, Telefon &amp; Emailadresse aufnehmen</div>
         </div>
       </div>
@@ -407,13 +411,13 @@ render();
   <div class="ov-divider"></div>
   <div class="v"><div class="vline"></div></div>
   <div class="center-box">
-    <div class="ov-node n-say"><div class="ov-label">Pitch</div>„Ich rufe Sie an, weil wir Unternehmen wie Ihrem helfen, bei der Planung von Firmenveranstaltungen schnell und unkompliziert das passende Hotel zu finden – und das völlig kostenfrei.<br><br>Wie organisieren Sie aktuell Ihre Veranstaltungen oder Hotelbuchungen? Bekommen Sie problemlos passende Angebote – oder kostet das eher viel Zeit und Nerven?"</div>
+    <div class="ov-node n-say"><div class="ov-label">Pitch</div>„Sie fragen sich bestimmt, weshalb ich mich melde mit all den Fragen. Und zwar geht's darum, dass wir Unternehmen wie Ihrem helfen bei der Planung von Firmenveranstaltungen schnell und unkompliziert das passende Hotel, die passende Location oder auch den passenden Dienstleister zu finden und das völlig kostenfrei.<br><br>Wie organisieren Sie denn aktuell Ihre Veranstaltungen oder Hotelbuchungen? Bekommen Sie problemlos passende Angebote oder ist das eher zeitaufwändig und nervig?"</div>
   </div>
 
   <div class="ov-divider"></div>
   <div class="v"><div class="vline"></div></div>
   <div class="center-box">
-    <div class="ov-node n-q"><div class="ov-label">Falls „Wir machen das selbst / mit bestehendem Partner"</div>„Das heißt, Sie haben für jede Anfrage sofort transparente Angebote auf dem Tisch – inklusive Preisvergleich und Verfügbarkeiten – ohne dass Sie selbst zig Hotels anrufen müssen?"</div>
+    <div class="ov-node n-q"><div class="ov-label">Falls „Wir machen das selbst / mit bestehendem Partner"</div>„Verstehe. Würden Sie denn sagen, dass Sie für jede Anfrage direkt transparente Angebote auf dem Tisch haben, inklusive Preisvergleich und Verfügbarkeiten – ohne dass Sie selbst zig Hotels anrufen müssen?"</div>
   </div>
   <div class="fork">
     <div class="fork-stem"><div class="vline"></div></div>
@@ -422,7 +426,7 @@ render();
       <div class="fork-col">
         <div class="vline"></div><span class="tag tag-ja">✓ Ja</span><div class="vline"></div>
         <div class="fork-col-inner">
-          <div class="ov-node n-say">„Super, dann sind Sie bestens aufgestellt. Darf ich trotzdem kurz fragen: Wie zufrieden Sie mit Geschwindigkeit und Konditionen sind?"</div>
+          <div class="ov-node n-say">„Ich würde sagen, dann sind Sie bestens aufgestellt. Darf ich trotzdem kurz fragen, wie zufrieden Sie sind mit der Geschwindigkeit und den Konditionen, die Sie aktuell bekommen?"</div>
           <div class="vline" style="margin:0 auto;"></div>
           <div class="fork">
             <div class="fork-bar-wrap"><div class="fork-bar-left"></div><div class="fork-mid"></div><div class="fork-bar-right"></div></div>
@@ -431,13 +435,13 @@ render();
                 <div class="vline"></div><span class="tag tag-ja">✓ Ja — sehr zufrieden</span><div class="vline"></div>
                 <div class="fork-col-inner">
                   <div class="ov-node n-say">„Das freut mich zu hören, es ist immer ein gutes Zeichen, wenn die Zusammenarbeit so gut läuft. Trotzdem ist es oft hilfreich, noch einen zusätzlichen Ansprechpartner in petto zu haben. Darf ich Ihnen meinen Kontakt zusenden, damit Sie sich bei Bedarf melden können?"</div>
-                  <div class="ov-node n-act">„Wunderbar, dann sende ich Ihnen gleich einen Teamscall zu und wir sprechen am [Datum/Uhrzeit] kurz. Danach sehen wir, wie gut unser Service zu Ihnen passt."</div>
+                  <div class="ov-node n-act">„Wunderbar, wollen wir direkt einen Teamscall vereinbaren, um zu sehen ob unser Service zu Ihnen passt?"</div>
                 </div>
               </div>
               <div class="fork-col">
                 <div class="vline"></div><span class="tag tag-nein">✗ Nein — nicht vollständig zufrieden</span><div class="vline"></div>
                 <div class="fork-col-inner">
-                  <div class="ov-node n-say">„Genau hier setzen wir an – wir übernehmen die Hotelsuche komplett für Sie und das kostenfrei. Wir sparen Ihnen nicht nur Zeit und Nerven, sondern können durch unsere Einkaufskraft auch sehr gute Konditionen bekommen. Hätten Sie diese oder nächste Woche 15 Minuten Zeit, dass ich Ihnen einmal in Ruhe vorstellen kann, wie die Lösung genau aussieht?"</div>
+                  <div class="ov-node n-say">„Dann würde ich sagen, setzen wir genau hier an, denn wir übernehmen die Hotelsuche komplett für Sie und das kostenfrei. Wir sparen Ihnen nicht nur Zeit und Nerven, sondern können häufig durch unsere Einkaufskraft auch sehr gute Konditionen bekommen. Hätten Sie denn diese oder in der kommenden Woche Zeit, 15 Minuten mal in Ruhe darüber zu sprechen, wie eine gute Lösung für Sie aussehen kann?"</div>
                   <div class="ov-node n-act" style="text-align:center;font-size:11px;font-style:italic;">→ weiter zum Abschlusspfad ↓</div>
                 </div>
               </div>
@@ -448,7 +452,7 @@ render();
       <div class="fork-col">
         <div class="vline"></div><span class="tag tag-nein">✗ Nein</span><div class="vline"></div>
         <div class="fork-col-inner">
-          <div class="ov-node n-say">„Genau hier setzen wir an – wir übernehmen die Hotelsuche komplett für Sie und das kostenfrei. Wir sparen Ihnen nicht nur Zeit und Nerven, sondern können durch unsere Einkaufskraft auch sehr gute Konditionen bekommen. Hätten Sie diese oder nächste Woche 15 Minuten Zeit, dass ich Ihnen einmal in Ruhe vorstellen kann, wie die Lösung genau aussieht?"</div>
+          <div class="ov-node n-say">„Dann würde ich sagen, setzen wir genau hier an, denn wir übernehmen die Hotelsuche komplett für Sie und das kostenfrei. Wir sparen Ihnen nicht nur Zeit und Nerven, sondern können häufig durch unsere Einkaufskraft auch sehr gute Konditionen bekommen. Hätten Sie denn diese oder in der kommenden Woche Zeit, 15 Minuten mal in Ruhe darüber zu sprechen, wie eine gute Lösung für Sie aussehen kann?"</div>
           <div class="ov-node n-act" style="text-align:center;font-size:11px;font-style:italic;">→ weiter zum Abschlusspfad ↓</div>
         </div>
       </div>
@@ -467,14 +471,14 @@ render();
       <div class="fork-col">
         <div class="vline"></div><span class="tag tag-info">Einwandbehandlung</span><div class="vline"></div>
         <div class="fork-col-inner">
-          <div class="ov-node n-say">„Kann ich nachvollziehen. Allerdings ersparen Sie sich mit uns jede Menge Zeit, weil wir die Angebote bündeln, vergleichen und Sie sofort entscheiden können – ohne zusätzliche Kosten. Darf ich Ihnen einmal mehr Infos zu unserem Service zusenden?"</div>
+          <div class="ov-node n-say">„Kann ich total nachvollziehen. Ich mag das auch nicht, unvorbereitet angerufen zu werden. Trotzdem möchte ich noch mal daran erinnern, dass Sie sich eine Menge Zeit sparen, weil wir die Angebote bündeln, wir vergleichen sie und Sie können unmittelbar entscheiden, ohne zusätzliche Kosten. Darf ich Ihnen trotz der Skepsis mehr Informationen zu unserem Service zusenden?"</div>
           <div class="ov-node n-end">→ Name, Telefon &amp; Emailadresse aufnehmen</div>
         </div>
       </div>
       <div class="fork-col">
         <div class="vline"></div><span class="tag tag-nein">Nerviges Thema</span><div class="vline"></div>
         <div class="fork-col-inner">
-          <div class="ov-node n-say">„Genau hier setzen wir an – wir übernehmen die Hotelsuche komplett für Sie und das kostenfrei. Wir sparen Ihnen nicht nur Zeit und Nerven, sondern können durch unsere Einkaufskraft auch sehr gute Konditionen bekommen. Hätten Sie diese oder nächste Woche 15 Minuten Zeit, dass ich Ihnen einmal in Ruhe vorstellen kann, wie die Lösung genau aussieht?"</div>
+          <div class="ov-node n-say">„Glücklicherweise ist es nicht nervig für uns, deswegen melden wir uns bei Ihnen. Denn wir übernehmen gern die Hotel-/Locationsuche für Sie und das kostenfrei. Wir sparen Ihnen nicht nur Zeit und Nerven, sondern können durch unsere Einkaufskraft auch sehr gute Konditionen bekommen. Hätten Sie denn diese Woche oder in der kommenden Woche 15 Minuten Zeit, sodass ich Ihnen einmal in Ruhe vorstellen kann, wie eine Lösung für Ihr Unternehmen aussehen kann?"</div>
           <div class="ov-node n-act" style="text-align:center;font-size:11px;font-style:italic;">→ weiter zum Abschlusspfad ↓</div>
         </div>
       </div>
@@ -484,7 +488,7 @@ render();
   <div class="ov-divider"></div>
   <div class="v"><div class="vline"></div></div>
   <div class="center-box">
-    <div class="ov-node n-say"><div class="ov-label">Abschlusspfad — Interesse vorhanden</div>„Danke für die Offenheit. Am besten sprechen wir das einmal in Ruhe durch. Dann können Sie mir genauer schildern, was Ihnen wichtig ist, und ich zeige Ihnen, wie wir das bei unseren Kunden lösen.<br><br>Wann haben Sie in den nächsten Tagen 15 Minuten Zeit für einen Termin?"</div>
+    <div class="ov-node n-say"><div class="ov-label">Abschlusspfad — Interesse vorhanden</div>„Cool, danke, dass Sie so offen waren. Gerne können wir das mal in Ruhe durchsprechen und dann können Sie mir genauer schildern, was Ihnen wichtig ist und ich zeige Ihnen, wie wir diese Themen bei unseren aktuellen Kunden lösen.<br><br>Welche Tage und welche Uhrzeiten würden Ihnen denn in den kommenden zwei Wochen zusagen?"</div>
   </div>
   <div class="fork">
     <div class="fork-stem"><div class="vline"></div></div>
@@ -500,7 +504,7 @@ render();
       <div class="fork-col">
         <div class="vline"></div><span class="tag tag-nein">✗ Kein Termin möglich</span><div class="vline"></div>
         <div class="fork-col-inner">
-          <div class="ov-node n-say">„Auch wenn kurzfristig kein Termin möglich ist, sende ich Ihnen bereits unser Infomaterial zu, sodass Sie sich in Ruhe einen Einblick verschaffen können. Melden Sie sich jederzeit gern bei uns! Ich bedanke mich herzlich für Ihre Zeit und wünsche noch einen angenehmen Tag. Auf Wiederhören!"</div>
+          <div class="ov-node n-say">„Schade, dass es in den nächsten zwei Wochen nicht passt. Trotzdem sende ich Ihnen bereits ein bisschen Infomaterial zu, sodass Sie sich schon mal in Ruhe einen Einblick verschaffen können. Darf ich einmal um Ihre E-Mailadresse bitten? Melden Sie sich dann einfach gern bei uns. Ich bedanke mich ganz herzlich für Ihre Zeit und wünsche noch einen angenehmen Tag. Auf Wiederhören."</div>
           <div class="ov-node n-end">→ Emailadresse aufnehmen &amp; Infomaterial zusenden</div>
         </div>
       </div>
