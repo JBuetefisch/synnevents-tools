@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Synnevents · Gatekeeper-Skript</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --border: #e2e0d8;
+    --accent: #6c63d5;
+    --accent-soft: rgba(108,99,213,0.08);
+    --text: #1a1a1a;
+    --text-muted: #6b7280;
+    --text-dim: #9ca3af;
+    --green: #22c55e;
+    --green-soft: rgba(34,197,94,0.08);
+    --green-border: rgba(34,197,94,0.3);
+    --red: #ef4444;
+    --red-soft: rgba(239,68,68,0.07);
+    --red-border: rgba(239,68,68,0.3);
+    --radius: 10px;
+    --radius-lg: 14px;
+    --shadow: 0 1px 4px rgba(0,0,0,0.07), 0 2px 12px rgba(0,0,0,0.04);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  /* ── HEADER ── */
+  .top-header {
+    padding: 28px 32px 20px;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .top-header .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .top-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  /* ── PROGRESS DOTS ── */
+  .progress-dots {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin: 16px 0 24px;
+  }
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.2s, transform 0.2s;
+    cursor: pointer;
+  }
+  .dot.active { background: var(--accent); transform: scale(1.2); }
+  .dot.done { background: var(--green); }
+
+  /* ── BREADCRUMB ── */
+  .breadcrumb {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .breadcrumb .current { font-weight: 600; color: var(--text); }
+  .breadcrumb .sep { color: var(--text-dim); }
+
+  /* ── BACK BUTTON ── */
+  .back-btn {
+    background: none;
+    border: none;
+    font-size: 13px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 20px;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.15s;
+  }
+  .back-btn:hover { color: var(--accent); }
+
+  /* ── CONTAINER ── */
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  /* ── STEP ── */
+  .step { display: none; }
+  .step.active { display: block; }
+
+  /* ── SCRIPT CARD ── */
+  .script-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px 24px 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .script-card .sc-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .script-card .sc-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  /* ── SPEECH BLOCK ── */
+  .speech {
+    background: #fafaf8;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 48px 16px 18px;
+    font-size: 15px;
+    color: var(--text);
+    line-height: 1.75;
+    position: relative;
+    margin-bottom: 8px;
+  }
+  .speech.followup {
+    border-left-color: var(--text-dim);
+    font-size: 14px;
+    margin-top: 8px;
+  }
+  .speech .copy-btn {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: var(--border);
+    border: none;
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-size: 11px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+  }
+  .speech .copy-btn:hover { background: var(--accent); color: #fff; }
+
+  .wait-note {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin: 6px 0 4px;
+    font-style: italic;
+    padding-left: 4px;
+  }
+  .followup-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 10px 0 4px;
+  }
+
+  /* ── SITUATION BUTTONS ── */
+  .situation-btn {
+    width: 100%;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .situation-btn:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .situation-btn.green {
+    border-color: var(--green-border);
+    color: var(--green);
+  }
+  .situation-btn.green:hover {
+    background: var(--green-soft);
+    border-color: var(--green);
+  }
+  .situation-btn.red {
+    border-color: var(--red-border);
+    color: var(--red);
+  }
+  .situation-btn.red:hover {
+    background: var(--red-soft);
+    border-color: var(--red);
+  }
+  .btn-icon { font-size: 16px; }
+
+  /* ── CHEATSHEET ── */
+  .cheatsheet {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .cs-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .cs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+  }
+  .cs-cell {
+    background: var(--surface);
+    padding: 16px 18px;
+  }
+  .cs-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 7px;
+  }
+  .cs-text {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ── TONALITY ── */
+  .tonality {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .ton-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .ton-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+  }
+  .ton-cell {
+    background: var(--surface);
+    padding: 16px 18px;
+    display: flex;
+    gap: 12px;
+  }
+  .ton-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .ton-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .ton-text { font-size: 12px; color: var(--text-muted); line-height: 1.55; }
+
+  /* ── NOTION LINK ── */
+  .notion-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    text-decoration: none;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .notion-link:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .notion-link-icon {
+    width: 36px; height: 36px;
+    background: var(--accent-soft);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .notion-link .eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 2px; }
+  .notion-link .title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .notion-link-tag { margin-left: auto; font-size: 12px; color: var(--text-dim); }
+
+  /* ── PHASE DIVIDER ── */
+  .phase-divider {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 24px 0 12px;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 32px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 22px;
+    border-radius: 24px;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+    z-index: 999;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 600px) {
+    .top-header, .container { padding-left: 16px; padding-right: 16px; }
+    .cs-grid, .ton-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-header">
+  <div class="eyebrow">Synnevents · Die Hotelspezialisten</div>
+  <h1>Gatekeeper-Skript</h1>
+  <div class="progress-dots" id="dots"></div>
+</div>
+
+<div class="container">
+
+  <!-- ── STEP 0: EINSTIEG ── -->
+  <div class="step active" id="step-0">
+    <div class="breadcrumb">
+      <span>Einstieg</span>
+      <span class="sep">›</span>
+      <span class="current">Einstieg — Vorzimmer / Rezeption</span>
+    </div>
+    <button class="back-btn" onclick="goBack()" style="visibility:hidden">← Zurück</button>
+
+    <div class="script-card">
+      <div class="sc-eyebrow">Immer zuerst</div>
+      <div class="sc-title">Einstieg bei Vorzimmer / Rezeption</div>
+      <div class="speech">
+        „Hallo, hier ist [Dein Name] von DIE HOTELSPEZIALISTEN. Ich würde gerne mit Frau/Herrn [Nachname] sprechen … <em>*kurze Pause*</em> … Frau/Herr [Nachname]. Können Sie mich bitte zu ihm/ihr durchstellen?"
+        <button class="copy-btn" onclick="copyText(this, 'Hallo, hier ist [Dein Name] von DIE HOTELSPEZIALISTEN. Ich würde gerne mit Frau/Herrn [Nachname] sprechen … *kurze Pause* … Frau/Herr [Nachname]. Können Sie mich bitte zu ihm/ihr durchstellen?')">Kopieren</button>
+      </div>
+    </div>
+
+    <div class="phase-divider">Was passiert als nächstes?</div>
+
+    <button class="situation-btn green" onclick="goTo(1)">
+      <span class="btn-icon">✅</span> Wird direkt durchgestellt
+    </button>
+    <button class="situation-btn" onclick="goTo(2)">
+      <span class="btn-icon">⏱️</span> Situation A — Gerade nicht erreichbar / keine Zeit
+    </button>
+    <button class="situation-btn" onclick="goTo(3)">
+      <span class="btn-icon">🏢</span> Situation B — Nicht im Haus
+    </button>
+    <button class="situation-btn" onclick="goTo(4)">
+      <span class="btn-icon">❓</span> Situation C — „Worum geht es genau?"
+    </button>
+  </div>
+
+  <!-- ── STEP 1: DURCHGESTELLT ── -->
+  <div class="step" id="step-1">
+    <div class="breadcrumb">
+      <span>Einstieg</span>
+      <span class="sep">›</span>
+      <span class="current">Durchgestellt ✓</span>
+    </div>
+    <button class="back-btn" onclick="goBack()">← Zurück</button>
+
+    <div class="script-card">
+      <div class="sc-eyebrow">Ziel erreicht</div>
+      <div class="sc-title">Du wirst durchgestellt 🎉</div>
+      <div class="speech">
+        Weiter mit dem Kaltakquise-Skript Josi.
+        <button class="copy-btn" style="display:none"></button>
+      </div>
+    </div>
+
+    <a href="https://app.notion.com/p/Kaltakquise-Skript-Josi-37aa86a78fc78062b22df9384d91576a?source=copy_link" target="_blank" class="notion-link">
+      <div class="notion-link-icon">📋</div>
+      <div>
+        <div class="eyebrow">Weiter zum</div>
+        <div class="title">Kaltakquise-Skript Josi →</div>
+      </div>
+      <div class="notion-link-tag">Notion</div>
+    </a>
+  </div>
+
+  <!-- ── STEP 2: SITUATION A ── -->
+  <div class="step" id="step-2">
+    <div class="breadcrumb">
+      <span>Einstieg</span>
+      <span class="sep">›</span>
+      <span class="current">Situation A — Nicht erreichbar</span>
+    </div>
+    <button class="back-btn" onclick="goBack()">← Zurück</button>
+
+    <div class="script-card">
+      <div class="sc-eyebrow">Situation A</div>
+      <div class="sc-title">„Gerade nicht erreichbar / keine Zeit"</div>
+      <div class="speech">
+        „Wann soll ich wieder anrufen – besser in einer Stunde oder in 15 Minuten?"
+        <button class="copy-btn" onclick="copyText(this, 'Wann soll ich wieder anrufen – besser in einer Stunde oder in 15 Minuten?')">Kopieren</button>
+      </div>
+      <div class="wait-note">→ Antwort abwarten</div>
+      <div class="followup-label">Dann:</div>
+      <div class="speech followup">
+        „Alles klar, vielen Dank – ich melde mich dann gleich noch einmal."
+        <button class="copy-btn" onclick="copyText(this, 'Alles klar, vielen Dank – ich melde mich dann gleich noch einmal.')">Kopieren</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 3: SITUATION B ── -->
+  <div class="step" id="step-3">
+    <div class="breadcrumb">
+      <span>Einstieg</span>
+      <span class="sep">›</span>
+      <span class="current">Situation B — Nicht im Haus</span>
+    </div>
+    <button class="back-btn" onclick="goBack()">← Zurück</button>
+
+    <div class="script-card">
+      <div class="sc-eyebrow">Situation B</div>
+      <div class="sc-title">„Nicht im Haus"</div>
+      <div class="speech">
+        „Wann soll ich wieder anrufen – morgen oder übermorgen?"
+        <button class="copy-btn" onclick="copyText(this, 'Wann soll ich wieder anrufen – morgen oder übermorgen?')">Kopieren</button>
+      </div>
+      <div class="wait-note">→ Antwort abwarten</div>
+      <div class="followup-label">Dann:</div>
+      <div class="speech followup">
+        „Alles klar, vielen Dank – ich melde mich dann noch einmal."
+        <button class="copy-btn" onclick="copyText(this, 'Alles klar, vielen Dank – ich melde mich dann noch einmal.')">Kopieren</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 4: SITUATION C ── -->
+  <div class="step" id="step-4">
+    <div class="breadcrumb">
+      <span>Einstieg</span>
+      <span class="sep">›</span>
+      <span class="current">Situation C — Worum geht es?</span>
+    </div>
+    <button class="back-btn" onclick="goBack()">← Zurück</button>
+
+    <div class="script-card">
+      <div class="sc-eyebrow">Situation C — Erste Nachfrage</div>
+      <div class="sc-title">„Worum geht es genau?"</div>
+      <div class="speech">
+        „Es geht um die Hotelbuchungen für Ihre Firmenveranstaltungen – da gibt es Optimierungspotenzial. Das möchte ich gerne mit Frau/Herrn [Nachname] direkt besprechen. Können Sie mich bitte durchstellen?"
+        <button class="copy-btn" onclick="copyText(this, 'Es geht um die Hotelbuchungen für Ihre Firmenveranstaltungen – da gibt es Optimierungspotenzial. Das möchte ich gerne mit Frau/Herrn [Nachname] direkt besprechen. Können Sie mich bitte durchstellen?')">Kopieren</button>
+      </div>
+    </div>
+
+    <div class="phase-divider">Was passiert als nächstes?</div>
+
+    <button class="situation-btn green" onclick="goTo(1)">
+      <span class="btn-icon">✅</span> Wird durchgestellt
+    </button>
+    <button class="situation-btn" onclick="goTo(5)">
+      <span class="btn-icon">🔁</span> Situation D — Nochmals nach Details gefragt
+    </button>
+    <button class="situation-btn" onclick="goTo(6)">
+      <span class="btn-icon">🚪</span> Situation E — Gatekeeper zögert / will nicht durchstellen
+    </button>
+  </div>
+
+  <!-- ── STEP 5: SITUATION D ── -->
+  <div class="step" id="step-5">
+    <div class="breadcrumb">
+      <span>Situation C</span>
+      <span class="sep">›</span>
+      <span class="current">Situation D — Eskalation</span>
+    </div>
+    <button class="back-btn" onclick="goBack()">← Zurück</button>
+
+    <div class="script-card">
+      <div class="sc-eyebrow">Situation D — Zweite Nachfrage</div>
+      <div class="sc-title">Nochmaliges Nachhaken nach Details</div>
+      <div class="speech">
+        „Es geht um Hotelverfügbarkeiten für Ihre Firmenveranstaltungen – das ist zeitkritisch und braucht eine kurze Rücksprache. Das kann ich im Detail aber nur direkt mit Frau/Herrn [Nachname] besprechen. Können Sie mich bitte kurz durchstellen?"
+        <button class="copy-btn" onclick="copyText(this, 'Es geht um Hotelverfügbarkeiten für Ihre Firmenveranstaltungen – das ist zeitkritisch und braucht eine kurze Rücksprache. Das kann ich im Detail aber nur direkt mit Frau/Herrn [Nachname] besprechen. Können Sie mich bitte kurz durchstellen?')">Kopieren</button>
+      </div>
+    </div>
+
+    <div class="phase-divider">Was passiert als nächstes?</div>
+
+    <button class="situation-btn green" onclick="goTo(1)">
+      <span class="btn-icon">✅</span> Wird durchgestellt
+    </button>
+    <button class="situation-btn" onclick="goTo(6)">
+      <span class="btn-icon">🚪</span> Situation E — Gatekeeper zögert / will nicht durchstellen
+    </button>
+  </div>
+
+  <!-- ── STEP 6: SITUATION E ── -->
+  <div class="step" id="step-6">
+    <div class="breadcrumb">
+      <span>Situation D</span>
+      <span class="sep">›</span>
+      <span class="current">Situation E — Durchstell-Pattern</span>
+    </div>
+    <button class="back-btn" onclick="goBack()">← Zurück</button>
+
+    <div class="script-card">
+      <div class="sc-eyebrow">Situation E — Letzter Versuch</div>
+      <div class="sc-title">Gatekeeper zögert / will nicht durchstellen</div>
+      <div class="speech">
+        „Ich weiß leider nicht, inwieweit ich das Thema mit Ihnen besprechen darf. Wenn er/sie gerade nicht im Haus ist, ist das kein Problem – dann melde ich mich später noch einmal. Aber wenn er/sie da ist, stellen Sie mich doch bitte kurz durch."
+        <button class="copy-btn" onclick="copyText(this, 'Ich weiß leider nicht, inwieweit ich das Thema mit Ihnen besprechen darf. Wenn er/sie gerade nicht im Haus ist, ist das kein Problem – dann melde ich mich später noch einmal. Aber wenn er/sie da ist, stellen Sie mich doch bitte kurz durch.')">Kopieren</button>
+      </div>
+    </div>
+
+    <div class="phase-divider">Was passiert als nächstes?</div>
+
+    <button class="situation-btn green" onclick="goTo(1)">
+      <span class="btn-icon">✅</span> Wird durchgestellt
+    </button>
+    <button class="situation-btn red" onclick="goTo(7)">
+      <span class="btn-icon">✖️</span> Situation F — Durchstellung nicht möglich
+    </button>
+  </div>
+
+  <!-- ── STEP 7: SITUATION F ── -->
+  <div class="step" id="step-7">
+    <div class="breadcrumb">
+      <span>Situation E</span>
+      <span class="sep">›</span>
+      <span class="current">Situation F — Gesprächsende</span>
+    </div>
+    <button class="back-btn" onclick="goBack()">← Zurück</button>
+
+    <div class="script-card">
+      <div class="sc-eyebrow">Situation F — Gesprächsende</div>
+      <div class="sc-title">Durchstellung nicht möglich</div>
+      <div class="speech">
+        „Okay, kein Problem – ich werde Frau/Herrn [Nachname] dann einfach anderweitig kontaktieren oder mich noch einmal später melden. Besser wäre allerdings, wenn er/sie mich zeitnah zurückruft."
+        <button class="copy-btn" onclick="copyText(this, 'Okay, kein Problem – ich werde Frau/Herrn [Nachname] dann einfach anderweitig kontaktieren oder mich noch einmal später melden. Besser wäre allerdings, wenn er/sie mich zeitnah zurückruft.')">Kopieren</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 8: SPICKZETTEL & TONALITÄT ── -->
+  <div class="step" id="step-8">
+    <div class="breadcrumb">
+      <span>Übersicht</span>
+      <span class="sep">›</span>
+      <span class="current">Spickzettel & Tonalität</span>
+    </div>
+    <button class="back-btn" onclick="goBack()">← Zurück</button>
+
+    <div class="phase-divider">Spickzettel</div>
+    <div class="cheatsheet">
+      <div class="cs-header">⚡ Kurzübersicht – auf einen Blick</div>
+      <div class="cs-grid">
+        <div class="cs-cell">
+          <div class="cs-label">Einstieg</div>
+          <div class="cs-text">„Hallo, hier ist [Name] von DIE HOTELSPEZIALISTEN. Ich würde gerne mit Frau/Herrn [Nachname] sprechen. Können Sie mich bitte durchstellen?"</div>
+        </div>
+        <div class="cs-cell">
+          <div class="cs-label">Situation C</div>
+          <div class="cs-text">„Es geht um die Hotelbuchungen für Ihre Firmenveranstaltungen – da gibt es Optimierungspotenzial. Das möchte ich gerne direkt besprechen. Können Sie mich bitte durchstellen?"</div>
+        </div>
+        <div class="cs-cell">
+          <div class="cs-label">Situation D</div>
+          <div class="cs-text">„Es geht um Hotelverfügbarkeiten – das ist zeitkritisch und braucht eine kurze Rücksprache. Das kann ich nur direkt mit Frau/Herrn [Nachname] besprechen. Können Sie mich bitte kurz durchstellen?"</div>
+        </div>
+        <div class="cs-cell">
+          <div class="cs-label">Situation E</div>
+          <div class="cs-text">„Ich weiß nicht, inwieweit ich das mit Ihnen besprechen darf. Wenn er/sie da ist, stellen Sie mich doch bitte kurz durch."</div>
+        </div>
+        <div class="cs-cell">
+          <div class="cs-label">Situation F</div>
+          <div class="cs-text">„Kein Problem – ich melde mich anderweitig. Besser wäre allerdings ein zeitnaher Rückruf."</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-divider">Tonalität & wichtige Hinweise</div>
+    <div class="tonality">
+      <div class="ton-header">🎯 So klingst du souverän am Telefon</div>
+      <div class="ton-grid">
+        <div class="ton-cell">
+          <div class="ton-icon">🗣️</div>
+          <div>
+            <div class="ton-title">Ruhig & bestimmt</div>
+            <div class="ton-text">Kein zögerndes „Ich wollte mal fragen ob …" – direkt in den Satz. Pausen sind Stärke.</div>
+          </div>
+        </div>
+        <div class="ton-cell">
+          <div class="ton-icon">🎭</div>
+          <div>
+            <div class="ton-title">Vertraut klingen</div>
+            <div class="ton-text">Den Namen der Zielperson selbstverständlich aussprechen – als ob man sich kennt.</div>
+          </div>
+        </div>
+        <div class="ton-cell">
+          <div class="ton-icon">⚖️</div>
+          <div>
+            <div class="ton-title">Nie lügen</div>
+            <div class="ton-text">„Zeitkritisch" und „Optimierungspotenzial" erzeugen Druck ohne zu lügen.</div>
+          </div>
+        </div>
+        <div class="ton-cell">
+          <div class="ton-icon">🔁</div>
+          <div>
+            <div class="ton-title">Alternativfragen nutzen</div>
+            <div class="ton-text">„Morgen oder übermorgen?" statt „Wann?" – gibt Kontrolle und sichert einen Termin.</div>
+          </div>
+        </div>
+        <div class="ton-cell">
+          <div class="ton-icon">📵</div>
+          <div>
+            <div class="ton-title">E-Mail-Verweis kontern</div>
+            <div class="ton-text">Mit Situation D antworten – zeitkritisch, kurze Rücksprache nötig.</div>
+          </div>
+        </div>
+        <div class="ton-cell">
+          <div class="ton-icon">🚪</div>
+          <div>
+            <div class="ton-title">Verantwortung verschieben</div>
+            <div class="ton-text">„Ich weiß nicht, ob ich das mit Ihnen besprechen darf" – der Gatekeeper muss nicht entscheiden, nur verbinden.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Nav Buttons unten -->
+<div style="max-width:720px;margin:20px auto 0;padding:0 32px;display:flex;gap:10px;justify-content:flex-end;">
+  <button onclick="goTo(8)" style="background:none;border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;color:var(--text-muted);cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:0.06em;text-transform:uppercase;">⚡ Spickzettel</button>
+  <button onclick="resetAll()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;color:var(--text-muted);cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:0.06em;text-transform:uppercase;">↺ Neu starten</button>
+</div>
+
+<div class="toast" id="toast">✓ Text kopiert</div>
+
+<script>
+  const TOTAL_STEPS = 8;
+  let history = [0];
+
+  function updateDots(current) {
+    const container = document.getElementById('dots');
+    container.innerHTML = '';
+    for (let i = 0; i <= TOTAL_STEPS; i++) {
+      const d = document.createElement('div');
+      d.className = 'dot';
+      if (i < current) d.classList.add('done');
+      if (i === current) d.classList.add('active');
+      d.onclick = () => { if (i < current) goTo(i); };
+      container.appendChild(d);
+    }
+  }
+
+  function goTo(stepIndex) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('step-' + stepIndex).classList.add('active');
+    history.push(stepIndex);
+    updateDots(stepIndex);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // show/hide back button
+    document.querySelectorAll('.back-btn').forEach(b => {
+      b.style.visibility = history.length > 1 ? 'visible' : 'hidden';
+    });
+  }
+
+  function goBack() {
+    if (history.length > 1) {
+      history.pop();
+      const prev = history[history.length - 1];
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById('step-' + prev).classList.add('active');
+      updateDots(prev);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function resetAll() {
+    history = [0];
+    goTo(0);
+  }
+
+  function copyText(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    });
+  }
+
+  updateDots(0);
+</script>
+
+</body>
+</html>
