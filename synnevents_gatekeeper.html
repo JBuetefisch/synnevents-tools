@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Synnevents · Gatekeeper-Skript</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #181c26;
+    --surface2: #1e2330;
+    --border: #2a3045;
+    --accent: #c8a96e;
+    --accent-soft: rgba(200,169,110,0.12);
+    --accent-hover: #d9bc87;
+    --text: #e8eaf0;
+    --text-muted: #8892a4;
+    --text-dim: #5a6275;
+    --green: #4caf7d;
+    --green-soft: rgba(76,175,125,0.12);
+    --red: #e05c5c;
+    --red-soft: rgba(224,92,92,0.10);
+    --blue: #5b8dee;
+    --blue-soft: rgba(91,141,238,0.12);
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo-mark {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: #0f1117;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .header-text h1 {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .header-text h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--text);
+    font-weight: 600;
+  }
+  .header-badge {
+    margin-left: auto;
+    background: var(--accent-soft);
+    border: 1px solid rgba(200,169,110,0.3);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 36px 24px 0;
+  }
+
+  /* ── INTRO ── */
+  .intro {
+    background: var(--accent-soft);
+    border: 1px solid rgba(200,169,110,0.25);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    margin-bottom: 32px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .intro-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+  .intro p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+  .intro strong { color: var(--accent); }
+
+  /* ── PHASE LABEL ── */
+  .phase-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+    padding-left: 4px;
+  }
+
+  /* ── SECTION CARD ── */
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .section-card.active { border-color: var(--accent); }
+  .section-card.start-card { border-color: rgba(200,169,110,0.4); }
+
+  /* ── CARD HEADER (clickable) ── */
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .card-header:hover { background: var(--surface2); }
+
+  .card-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+    flex-shrink: 0;
+  }
+  .icon-start  { background: var(--accent-soft); }
+  .icon-pause  { background: var(--blue-soft); }
+  .icon-away   { background: var(--blue-soft); }
+  .icon-what   { background: rgba(255,200,80,0.10); }
+  .icon-more   { background: rgba(255,200,80,0.10); }
+  .icon-push   { background: var(--accent-soft); }
+  .icon-end    { background: var(--red-soft); }
+
+  .card-title {
+    flex: 1;
+  }
+  .card-title .eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 3px;
+  }
+  .card-title .name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .chevron {
+    color: var(--text-dim);
+    font-size: 12px;
+    transition: transform 0.25s;
+    flex-shrink: 0;
+  }
+  .section-card.active .chevron { transform: rotate(180deg); color: var(--accent); }
+
+  /* ── CARD BODY ── */
+  .card-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+  .section-card.active .card-body { max-height: 800px; }
+
+  .card-inner {
+    padding: 4px 20px 22px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── SCRIPT TEXT ── */
+  .script-block {
+    background: var(--surface2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 14px 0 10px;
+    font-size: 15px;
+    color: var(--text);
+    line-height: 1.7;
+    font-style: italic;
+    position: relative;
+  }
+  .script-block .copy-btn {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: var(--border);
+    border: none;
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-size: 11px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+  }
+  .script-block .copy-btn:hover { background: var(--accent); color: #0f1117; }
+
+  .script-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 6px 0 10px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .script-note::before { content: "↳"; color: var(--accent); flex-shrink: 0; }
+
+  /* ── FOLLOW-UP ── */
+  .follow-up {
+    margin-top: 14px;
+  }
+  .follow-up-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .script-block.secondary {
+    border-left-color: var(--text-dim);
+    font-size: 14px;
+  }
+
+  /* ── TIP BOX ── */
+  .tip-box {
+    background: var(--green-soft);
+    border: 1px solid rgba(76,175,125,0.25);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: #7ed9a8;
+    line-height: 1.6;
+    display: flex;
+    gap: 10px;
+  }
+  .tip-box .tip-icon { flex-shrink: 0; }
+
+  /* ── DIVIDER ── */
+  .section-divider {
+    margin: 28px 0 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-divider span {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .section-divider::before,
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── CHEATSHEET ── */
+  .cheatsheet {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .cheatsheet-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+  }
+  .cs-cell {
+    background: var(--surface);
+    padding: 16px 18px;
+  }
+  .cs-cell:first-child, .cs-cell:nth-child(2) {
+    border-bottom: none;
+  }
+  .cs-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .cs-text {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    font-style: italic;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--green);
+    color: #0f1117;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 22px;
+    border-radius: 24px;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+    z-index: 999;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 14px 16px; }
+    .container { padding: 20px 14px 0; }
+    .cs-grid { grid-template-columns: 1fr; }
+    .header-badge { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">S</div>
+  <div class="header-text">
+    <h1>Die Hotelspezialisten</h1>
+    <h2>Gatekeeper-Skript</h2>
+  </div>
+  <div class="header-badge">Telefonleitfaden</div>
+</header>
+
+<div class="container">
+
+  <!-- Intro -->
+  <div class="intro">
+    <div class="intro-icon">🎯</div>
+    <p>Ziel: <strong>Zur Zielperson durchgestellt werden</strong> – nicht verkaufen. Klicke auf die Situation, die der Gatekeeper gerade anspricht, und lies den passenden Text direkt ab. Ruhig, sicher, souverän.</p>
+  </div>
+
+  <!-- ── PHASE 1: EINSTIEG ── -->
+  <div class="phase-label">Phase 1 — Einstieg</div>
+
+  <!-- Einstieg -->
+  <div class="section-card start-card active" id="card-start">
+    <div class="card-header" onclick="toggle('card-start')">
+      <div class="card-icon icon-start">📞</div>
+      <div class="card-title">
+        <div class="eyebrow">Immer zuerst</div>
+        <div class="name">Einstieg bei Vorzimmer / Rezeption</div>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="card-body">
+      <div class="card-inner">
+        <div class="script-block">
+          „Hallo, hier ist <strong>[Dein Name]</strong> von DIE HOTELSPEZIALISTEN. Ich würde gerne mit Frau/Herrn <strong>[Nachname]</strong> sprechen … <em>*kurze Pause*</em> … Frau/Herr [Nachname]. Können Sie mich bitte zu ihm/ihr durchstellen?"
+          <button class="copy-btn" onclick="copyText(this, 'Hallo, hier ist [Dein Name] von DIE HOTELSPEZIALISTEN. Ich würde gerne mit Frau/Herrn [Nachname] sprechen … *kurze Pause* … Frau/Herr [Nachname]. Können Sie mich bitte zu ihm/ihr durchstellen?')">Kopieren</button>
+        </div>
+        <div class="script-note">Den Namen der Zielperson selbstverständlich aussprechen – als ob man sich kennt. Kurze Pause nach dem ersten Nennen wirkt vertraut.</div>
+        <div class="tip-box">
+          <span class="tip-icon">💡</span>
+          <span>Stimme ruhig und bestimmt. Kein zögerndes „Ich wollte mal fragen ob …" – direkt in den Satz gehen.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PHASE 2: RÜCKFRAGEN ── -->
+  <div class="section-divider"><span>Phase 2 — Rückfragen des Gatekeepers</span></div>
+  <p class="phase-label" style="margin-top:0">Klicke auf die Situation, die gerade passiert</p>
+
+  <!-- Nicht erreichbar -->
+  <div class="section-card" id="card-pause">
+    <div class="card-header" onclick="toggle('card-pause')">
+      <div class="card-icon icon-pause">⏱️</div>
+      <div class="card-title">
+        <div class="eyebrow">Situation A</div>
+        <div class="name">„Gerade nicht erreichbar / keine Zeit"</div>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="card-body">
+      <div class="card-inner">
+        <div class="script-block">
+          „Wann soll ich wieder anrufen – besser in einer Stunde oder in 15 Minuten?"
+          <button class="copy-btn" onclick="copyText(this, 'Wann soll ich wieder anrufen – besser in einer Stunde oder in 15 Minuten?')">Kopieren</button>
+        </div>
+        <div class="script-note">Antwort abwarten.</div>
+        <div class="follow-up">
+          <div class="follow-up-label">Dann:</div>
+          <div class="script-block secondary">
+            „Alles klar, vielen Dank – ich melde mich dann gleich noch einmal."
+            <button class="copy-btn" onclick="copyText(this, 'Alles klar, vielen Dank – ich melde mich dann gleich noch einmal.')">Kopieren</button>
+          </div>
+        </div>
+        <div class="tip-box">
+          <span class="tip-icon">💡</span>
+          <span>Die Alternativfrage (Stunde <em>oder</em> 15 Min.) gibt dem Gatekeeper Kontrolle – und dir einen konkreten Rückruftermin.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nicht im Haus -->
+  <div class="section-card" id="card-away">
+    <div class="card-header" onclick="toggle('card-away')">
+      <div class="card-icon icon-away">🏢</div>
+      <div class="card-title">
+        <div class="eyebrow">Situation B</div>
+        <div class="name">„Nicht im Haus"</div>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="card-body">
+      <div class="card-inner">
+        <div class="script-block">
+          „Wann soll ich wieder anrufen – morgen oder übermorgen?"
+          <button class="copy-btn" onclick="copyText(this, 'Wann soll ich wieder anrufen – morgen oder übermorgen?')">Kopieren</button>
+        </div>
+        <div class="script-note">Antwort abwarten.</div>
+        <div class="follow-up">
+          <div class="follow-up-label">Dann:</div>
+          <div class="script-block secondary">
+            „Alles klar, vielen Dank – ich melde mich dann noch einmal."
+            <button class="copy-btn" onclick="copyText(this, 'Alles klar, vielen Dank – ich melde mich dann noch einmal.')">Kopieren</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Worum geht es? -->
+  <div class="section-card" id="card-what">
+    <div class="card-header" onclick="toggle('card-what')">
+      <div class="card-icon icon-what">❓</div>
+      <div class="card-title">
+        <div class="eyebrow">Situation C</div>
+        <div class="name">„Worum geht es genau?"</div>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="card-body">
+      <div class="card-inner">
+        <div class="script-block">
+          „Es geht um die Hotelbuchungen für Ihre Firmenveranstaltungen – da gibt es Optimierungspotenzial. Das möchte ich gerne mit Frau/Herrn <strong>[Nachname]</strong> direkt besprechen. Können Sie mich bitte durchstellen?"
+          <button class="copy-btn" onclick="copyText(this, 'Es geht um die Hotelbuchungen für Ihre Firmenveranstaltungen – da gibt es Optimierungspotenzial. Das möchte ich gerne mit Frau/Herrn [Nachname] direkt besprechen. Können Sie mich bitte durchstellen?')">Kopieren</button>
+        </div>
+        <div class="tip-box">
+          <span class="tip-icon">💡</span>
+          <span>„Optimierungspotenzial" weckt Neugier ohne zu viel zu verraten. Die direkte Bitte um Durchstellung am Ende lässt keinen Raum für Ausweichen.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Erneute Nachfrage nach Details -->
+  <div class="section-card" id="card-more">
+    <div class="card-header" onclick="toggle('card-more')">
+      <div class="card-icon icon-more">🔁</div>
+      <div class="card-title">
+        <div class="eyebrow">Situation D</div>
+        <div class="name">Nochmal nachhaken: „Können Sie mir mehr sagen?"</div>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="card-body">
+      <div class="card-inner">
+        <div class="script-block">
+          „Es geht um Hotelverfügbarkeiten für Ihre Firmenveranstaltungen – das ist zeitkritisch und braucht eine kurze Rücksprache. Das kann ich im Detail aber nur direkt mit Frau/Herrn <strong>[Nachname]</strong> besprechen. Können Sie mich bitte kurz durchstellen?"
+          <button class="copy-btn" onclick="copyText(this, 'Es geht um Hotelverfügbarkeiten für Ihre Firmenveranstaltungen – das ist zeitkritisch und braucht eine kurze Rücksprache. Das kann ich im Detail aber nur direkt mit Frau/Herrn [Nachname] besprechen. Können Sie mich bitte kurz durchstellen?')">Kopieren</button>
+        </div>
+        <div class="tip-box">
+          <span class="tip-icon">💡</span>
+          <span>D baut direkt auf C auf: erst Optimierungspotenzial, dann Zeitkritikalität. Die Eskalation ist logisch – ohne zu lügen oder zu drängen.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PHASE 3: DURCHSTELL-PATTERN ── -->
+  <div class="section-divider"><span>Phase 3 — Durchstell-Pattern</span></div>
+
+  <!-- Push-Through -->
+  <div class="section-card" id="card-push">
+    <div class="card-header" onclick="toggle('card-push')">
+      <div class="card-icon icon-push">🚪</div>
+      <div class="card-title">
+        <div class="eyebrow">Situation E</div>
+        <div class="name">Gatekeeper zögert / will nicht durchstellen</div>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="card-body">
+      <div class="card-inner">
+        <div class="script-block">
+          „Ich weiß leider nicht, inwieweit ich das Thema mit Ihnen besprechen darf. Wenn er/sie gerade nicht im Haus ist, ist das kein Problem – dann melde ich mich später noch einmal. Aber wenn er/sie da ist, stellen Sie mich doch bitte kurz durch."
+          <button class="copy-btn" onclick="copyText(this, 'Ich weiß leider nicht, inwieweit ich das Thema mit Ihnen besprechen darf. Wenn er/sie gerade nicht im Haus ist, ist das kein Problem – dann melde ich mich später noch einmal. Aber wenn er/sie da ist, stellen Sie mich doch bitte kurz durch.')">Kopieren</button>
+        </div>
+        <div class="tip-box">
+          <span class="tip-icon">💡</span>
+          <span>„Ich weiß nicht, ob ich das mit Ihnen besprechen darf" nimmt den Gatekeeper aus der Verantwortung – er muss jetzt nicht inhaltlich entscheiden, sondern nur eine Verbindung herstellen.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PHASE 4: ENDE ── -->
+  <div class="section-divider"><span>Phase 4 — Gesprächsende</span></div>
+
+  <!-- Ende -->
+  <div class="section-card" id="card-end">
+    <div class="card-header" onclick="toggle('card-end')">
+      <div class="card-icon icon-end">🔚</div>
+      <div class="card-title">
+        <div class="eyebrow">Situation F</div>
+        <div class="name">Durchstellung nicht möglich</div>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="card-body">
+      <div class="card-inner">
+        <div class="script-block">
+          „Okay, kein Problem – ich werde Frau/Herrn <strong>[Nachname]</strong> dann einfach anderweitig kontaktieren oder mich noch einmal später melden. Besser wäre allerdings, wenn er/sie mich zeitnah zurückruft."
+          <button class="copy-btn" onclick="copyText(this, 'Okay, kein Problem – ich werde Frau/Herrn [Nachname] dann einfach anderweitig kontaktieren oder mich noch einmal später melden. Besser wäre allerdings, wenn er/sie mich zeitnah zurückruft.')">Kopieren</button>
+        </div>
+        <div class="tip-box">
+          <span class="tip-icon">💡</span>
+          <span>„Anderweitig kontaktieren" signalisiert, dass du hartnäckig bist. Manche Gatekeeper stellen doch noch durch – oder nehmen eine Nachricht auf.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LINK KALTAKQUISE ── -->
+  <div style="margin: 24px 0 8px;">
+    <a href="https://app.notion.com/p/Kaltakquise-Skript-Josi-37aa86a78fc78062b22df9384d91576a" target="_blank" style="
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+    " onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--surface2)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
+      <div style="width:36px;height:36px;background:var(--accent-soft);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📋</div>
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:3px;">Weiter zum</div>
+        <div style="font-size:15px;font-weight:600;color:var(--text);">Kaltakquise-Skript Josi →</div>
+      </div>
+      <div style="margin-left:auto;font-size:12px;color:var(--text-dim);">Notion</div>
+    </a>
+  </div>
+
+  <!-- ── SPICKZETTEL ── -->
+  <div class="section-divider"><span>Spickzettel</span></div>
+
+  <div class="cheatsheet">
+    <div class="cheatsheet-header">⚡ Kurzübersicht – auf einen Blick</div>
+    <div class="cs-grid">
+      <div class="cs-cell">
+        <div class="cs-title">Einstieg</div>
+        <div class="cs-text">„Hallo, hier ist [Name] von DIE HOTELSPEZIALISTEN. Ich würde gerne mit Frau/Herrn [Nachname] sprechen."</div>
+      </div>
+      <div class="cs-cell">
+        <div class="cs-title">Worum geht es? (C)</div>
+        <div class="cs-text">„Es geht um die Hotelbuchungen für Ihre Firmenveranstaltungen – da gibt es Optimierungspotenzial. Das möchte ich gerne mit Frau/Herrn [Nachname] direkt besprechen. Können Sie mich bitte durchstellen?"</div>
+      </div>
+      <div class="cs-cell">
+        <div class="cs-title">Nochmal nachhaken (D)</div>
+        <div class="cs-text">„Es geht um Hotelverfügbarkeiten für Ihre Firmenveranstaltungen – das ist zeitkritisch und braucht eine kurze Rücksprache. Das kann ich im Detail aber nur direkt mit Frau/Herrn [Nachname] besprechen. Können Sie mich bitte kurz durchstellen?"</div>
+      </div>
+      <div class="cs-cell">
+        <div class="cs-title">Durchstell-Pattern (E)</div>
+        <div class="cs-text">„Ich weiß leider nicht, inwieweit ich das Thema mit Ihnen besprechen darf. Wenn er/sie gerade nicht im Haus ist, ist das kein Problem – dann melde ich mich später noch einmal. Aber wenn er/sie da ist, stellen Sie mich doch bitte kurz durch."</div>
+      </div>
+      <div class="cs-cell">
+        <div class="cs-title">Ende (F)</div>
+        <div class="cs-text">„Okay, kein Problem – ich werde Frau/Herrn [Nachname] dann einfach anderweitig kontaktieren oder mich noch einmal später melden. Besser wäre allerdings, wenn er/sie mich zeitnah zurückruft."</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Die Hotelspezialisten · Synnevents GmbH · Gatekeeper-Skript</p>
+  </footer>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">✓ Text kopiert</div>
+
+<script>
+  function toggle(id) {
+    const card = document.getElementById(id);
+    const isActive = card.classList.contains('active');
+    card.classList.toggle('active', !isActive);
+  }
+
+  function copyText(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    });
+  }
+</script>
+
+</body>
+</html>
