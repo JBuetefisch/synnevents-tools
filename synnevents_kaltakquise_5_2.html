@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synnevents – Kaltakquise Gesprächsführer v5</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; min-height: 100vh; padding: 2rem 1rem; }
+.tool-wrap { display: flex; justify-content: center; }
+.container { width: 100%; max-width: 640px; }
+.header { margin-bottom: 1.5rem; }
+.header-title { font-size: 13px; font-weight: 600; color: #534AB7; text-transform: uppercase; letter-spacing: 0.07em; }
+.header-sub { font-size: 22px; font-weight: 500; color: #1a1a18; margin-top: 4px; }
+.header-ver { display: inline-block; font-size: 11px; font-weight: 700; color: #0F6E56; background: #E1F5EE; border: 1px solid #5DCAA5; border-radius: 4px; padding: 1px 7px; margin-left: 6px; vertical-align: 3px; }
+.progress { display: flex; gap: 6px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.2s; }
+.dot.active { background: #534AB7; }
+.dot.done { background: #5DCAA5; }
+.breadcrumb { font-size: 12px; color: #999; margin-bottom: 1rem; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; min-height: 18px; }
+.breadcrumb span { color: #888; }
+.card { background: #fff; border: 1px solid #e8e6e0; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+.phase { font-size: 11px; font-weight: 600; color: #534AB7; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+.title { font-size: 16px; font-weight: 500; color: #1a1a18; margin-bottom: 0.75rem; }
+.text-box { font-size: 15px; color: #1a1a18; line-height: 1.65; background: #f5f4f0; border-radius: 8px; padding: 0.9rem 2.6rem 0.9rem 1rem; border-left: 3px solid #534AB7; margin-bottom: 0.5rem; position: relative; }
+.text-box.pitch { border-left-color: #EF9F27; background: #FDF7EC; }
+.copy-btn { position: absolute; top: 8px; right: 8px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 3px 8px; font-size: 11px; color: #888; cursor: pointer; font-family: inherit; }
+.copy-btn:hover { background: #eee; }
+.copy-btn.copied { color: #0F6E56; border-color: #5DCAA5; }
+.tip { font-size: 13px; color: #888; margin-top: 0.5rem; font-style: italic; line-height: 1.55; }
+.tip::before { content: 'ℹ '; }
+.variants { font-size: 13px; color: #666; margin-top: 0.7rem; background: #f9f8f5; border: 1px dashed #ddd; border-radius: 8px; padding: 0.65rem 0.85rem; line-height: 1.6; }
+.variants b { color: #534AB7; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 3px; }
+.actions { display: flex; flex-direction: column; gap: 8px; margin-top: 1.25rem; }
+.btn { padding: 11px 16px; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #1a1a18; font-size: 14px; cursor: pointer; text-align: left; transition: background 0.15s; display: flex; align-items: center; gap: 8px; font-family: inherit; line-height: 1.45; }
+.btn:hover { background: #f5f4f0; }
+.btn.ja { border-color: #0F6E56; color: #0F6E56; }
+.btn.ja:hover { background: #E1F5EE; }
+.btn.nein { border-color: #A32D2D; color: #A32D2D; }
+.btn.nein:hover { background: #FCEBEB; }
+.btn.neutral { border-color: #534AB7; color: #534AB7; }
+.btn.neutral:hover { background: #EEEDFE; }
+.end-box { background: #f5f4f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+.end-label { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+.end-label::before { content: '✓ '; color: #0F6E56; }
+.action-box { background: #fff; border: 1px solid #e8e6e0; border-radius: 8px; padding: 0.75rem 1rem; font-size: 14px; color: #1a1a18; line-height: 1.6; }
+.restart-btn { padding: 8px 14px; border-radius: 8px; border: 1px solid #ddd; background: transparent; color: #888; font-size: 13px; cursor: pointer; font-family: inherit; margin-top: 0.5rem; }
+.restart-btn:hover { background: #f5f4f0; }
+.back-btn { background: transparent; border: none; color: #bbb; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 4px; font-family: inherit; }
+.back-btn:hover { color: #888; }
+
+/* ---------- Übersicht ---------- */
+.section-divider { max-width: 960px; margin: 3rem auto 2rem; border: none; border-top: 2px solid #e0ddd6; }
+.section-title { max-width: 960px; margin: 0 auto 0.4rem; font-size: 13px; font-weight: 600; color: #534AB7; text-transform: uppercase; letter-spacing: 0.07em; }
+.section-hint { max-width: 960px; margin: 0 auto 1.5rem; font-size: 12.5px; color: #888; }
+.overview { max-width: 960px; margin: 0 auto 4rem; font-size: 12px; color: #1a1a18; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; padding: 8px 14px; background: #fff; border: 1px solid #e8e6e0; border-radius: 8px; font-size: 11px; color: #666; }
+.li { display: flex; align-items: center; gap: 6px; }
+.ld { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.ov-node { border-radius: 7px; padding: 9px 12px; font-size: 11.5px; line-height: 1.55; width: 100%; }
+.ov-node + .ov-node { margin-top: 6px; }
+.ov-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.6; margin-bottom: 3px; font-style: normal; }
+.n-start { background: #EEEDFE; border: 1.5px solid #AFA9EC; color: #26215C; }
+.n-q     { background: #E6F1FB; border: 1.5px solid #85B7EB; color: #042C53; }
+.n-say   { background: #E1F5EE; border: 1.5px solid #5DCAA5; color: #04342C; font-style: italic; }
+.n-act   { background: #FAEEDA; border: 1.5px solid #EF9F27; color: #412402; }
+.n-end   { background: #F1EFE8; border: 1.5px solid #B4B2A9; color: #2C2C2A; }
+.n-pitch { background: #FDF0D8; border: 2.5px solid #EF9F27; color: #412402; box-shadow: 0 2px 0 rgba(239,159,39,0.25); }
+.n-pitch .ov-label { opacity: 1; color: #A9670A; font-size: 11px; }
+.n-hint  { background: transparent; border: 1px dashed #C0BDCC; color: #6b6880; font-style: italic; text-align: center; font-size: 11px; }
+.tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 4px; white-space: nowrap; }
+.tag-ja   { background: #EAF3DE; color: #173404; border: 1px solid #97C459; }
+.tag-nein { background: #FCEBEB; color: #501313; border: 1px solid #F09595; }
+.tag-info { background: #FAEEDA; color: #412402; border: 1px solid #EF9F27; }
+.tag-neu  { background: #EEEDFE; color: #26215C; border: 1px solid #AFA9EC; }
+.merge-bar { display: flex; align-items: center; gap: 8px; margin: 10px 0 6px; color: #999; font-size: 11px; }
+.merge-line { flex: 1; height: 1px; background: #ccc; }
+.v { display: flex; justify-content: center; }
+.vline { width: 2px; background: #C0BDCC; min-height: 12px; }
+.ov-divider { height: 1px; background: #E0DED8; margin: 14px 0; }
+.center-box { max-width: 620px; margin: 0 auto; }
+.fork { display: flex; flex-direction: column; align-items: stretch; }
+.fork-stem { display: flex; justify-content: center; }
+.fork-bar { height: 2px; background: #C0BDCC; }
+.fork-bar.n2 { margin: 0 25%; }
+.fork-bar.n3 { margin: 0 16.6%; }
+.fork-bar.n4 { margin: 0 12.5%; }
+.fork-cols { display: flex; align-items: flex-start; }
+.fork-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0 8px; }
+.fork-col-inner { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.chain { display: flex; align-items: center; gap: 6px; font-size: 10.5px; color: #777; padding-left: 2px; }
+.chain-txt { font-style: italic; }
+.ov-click { cursor: pointer; transition: box-shadow 0.12s, transform 0.12s; }
+.ov-click:hover { box-shadow: 0 0 0 3px rgba(83,74,183,0.22); transform: translateY(-1px); }
+.ov-click:active { transform: none; }
+.changelog { max-width: 960px; margin: 0 auto 2rem; background: #fff; border: 1px solid #e8e6e0; border-radius: 8px; padding: 1rem 1.25rem; font-size: 12.5px; line-height: 1.7; color: #333; }
+.changelog h3 { font-size: 11px; font-weight: 700; color: #534AB7; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+.changelog ul { margin: 0; padding-left: 1.1rem; }
+@media (max-width: 720px) {
+  .fork-cols { flex-direction: column; }
+  .fork-bar { display: none; }
+  .fork-col { padding: 0; }
+}
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+<div class="container">
+  <div class="header">
+    <div class="header-title">Synnevents</div>
+    <div class="header-sub">Kaltakquise Gesprächsführer<span class="header-ver">v5</span></div>
+  </div>
+  <div class="progress" id="progress"></div>
+  <div id="breadcrumb" class="breadcrumb"></div>
+  <div id="content"></div>
+</div>
+</div>
+
+<script>
+const steps = {
+  start: {
+    phase: "Einstieg",
+    title: "Vorstellung & Qualifizierung 1",
+    text: "Hallo, mein Name ist Josephine Bütefisch von Synnevents — wir vermitteln Unternehmen Hotels, Locations und alle Dienstleister rund um Ihr Event, komplett kostenfrei.\n\nDarf ich fragen, ob Sie in Ihrem Unternehmen regelmäßig Veranstaltungen oder Meetings außerhalb der eigenen Räumlichkeiten organisieren?",
+    variants: "Falls es vorher schon Kontakt gab, nur den ersten Satz tauschen — der Rest des Gesprächs ist identisch:<br>· <b style=\"display:inline\">Nach LinkedIn:</b> „Ich hatte Ihnen vor einiger Zeit eine kurze Nachricht auf LinkedIn geschickt, nun wollte ich mich einmal persönlich melden.\"<br>· <b style=\"display:inline\">Nach Mail/Kontakt:</b> „Wir hatten bereits kurz Kontakt — ich wollte mich nun einmal persönlich melden.\"",
+    options: [
+      { label: "JA", next: "q_uebernachtung", icon: "✅", cls: "ja" },
+      { label: "NEIN", next: "q1_auffang", icon: "❌", cls: "nein" }
+    ]
+  },
+
+  q1_auffang: {
+    phase: "Auffangfrage",
+    title: "Zimmerkontingente prüfen",
+    text: "Ah, okay. Kommt es denn aber vor, dass Sie Zimmerkontingente in Hotels für Gruppen buchen, zum Beispiel für Messen oder Weihnachtsfeiern?",
+    tip: "Bei JA wird die Übernachtungsfrage übersprungen — Zimmerkontingente SIND Übernachtungen, Goldstandard G2 ist damit bereits erfüllt. Es geht direkt mit der Zuständigkeit weiter.",
+    options: [
+      { label: "JA — Zimmerkontingente kommen vor", next: "q2", icon: "✅", cls: "ja" },
+      { label: "NEIN", next: "end_kein_bedarf", icon: "❌", cls: "nein" }
+    ]
+  },
+
+  end_kein_bedarf: {
+    phase: "Abschluss",
+    title: "Kein Bedarf",
+    text: "Auch Nein, okay. Trotzdem herzlichen Dank für Ihre Zeit. Und falls sich irgendwann etwas daran ändern sollte, können Sie mich gerne ansprechen. Darf ich Ihnen hierfür meine Kontaktdaten zusenden, sodass Sie mich für den Fall der Fälle ansprechen können?",
+    isEnd: true,
+    action: "✓ Emailadresse aufnehmen & Homepage schicken\n✓ CRM: Status „kein Bedarf\" · Wiedervorlage in 12 Monaten"
+  },
+
+  q_uebernachtung: {
+    phase: "Qualifizierung 1b — Übernachtung",
+    title: "Volumen in fünf Sekunden prüfen",
+    text: "Sind da auch Veranstaltungen mit Übernachtung dabei?\n\nBei NEIN direkt nachfassen: Und in welcher Größenordnung — eher 20 Personen oder eher 100 plus?",
+    tip: "Diese Frage entscheidet über Goldstandard G2 (Volumen) — sie kostet fünf Sekunden und sortiert die schwächsten Leads aus, bevor du Zeit in Zuständigkeit und Pitch investierst. Ab etwa 50 Teilnehmern ist G2 trotzdem erfüllt. Niemand wird abgelehnt — wir entscheiden nur, wo wir aktive Zeit investieren. (Wer über die Auffangfrage kam und Zimmerkontingente bestätigt hat, wird das hier nicht mehr gefragt.)",
+    options: [
+      { label: "JA — mit Übernachtung", next: "q2", icon: "✅", cls: "ja" },
+      { label: "NEIN — aber größere Tagesformate (ab ca. 50 Personen)", next: "q2", icon: "➖", cls: "neutral" },
+      { label: "NEIN — nur kleine Tagesformate", next: "q2", icon: "⚠️", cls: "nein" }
+    ]
+  },
+
+  q2: {
+    phase: "Qualifizierung 2 — Zuständigkeit",
+    title: "Zuständigkeit klären",
+    text: "Ja super! Sind Sie denn auch die Person im Unternehmen, die für die Buchung von Hotels, Locations und den Dienstleistern rund um Ihre Events zuständig ist?",
+    options: [
+      { label: "JA — zuständig", next: "bedarf", icon: "✅", cls: "ja" },
+      { label: "NEIN — nicht zuständig", next: "weiterleitung", icon: "❌", cls: "nein" }
+    ]
+  },
+
+  weiterleitung: {
+    phase: "Weiterleitung",
+    title: "Zuständigen erfragen",
+    text: "Alles klar. Können Sie mir denn sagen, mit wem ich hierzu sprechen darf? Wer ist normalerweise für Hotelbuchungen in Ihrer Firma zuständig?",
+    isEnd: true,
+    action: "✓ Name, Telefon & Emailadresse aufnehmen\n✓ CRM: neuen Kontakt anlegen, Quelle „Weiterleitung durch [Name]\"\n✓ Beim neuen Kontakt wieder von vorn beginnen — mit dem Zusatz, dass [Name] dich weitergeleitet hat"
+  },
+
+  bedarf: {
+    phase: "Bedarfsfrage",
+    title: "Ist-Situation verstehen (noch nicht verkaufen)",
+    text: "Ich merke, ich frage Ihnen ein Loch in den Bauch — ich sage Ihnen gleich, warum ich anrufe. Vorher noch eine Frage: Wie organisieren Sie das heute? Bekommen Sie problemlos passende Angebote, oder ist das eher zeitaufwändig und nervig?",
+    tip: "Hier wird noch nicht verkauft. Der Pitch kommt später als eigener Screen — dann einmal, dafür richtig. Zuhören und die Antwort im CRM notieren: sie ist dein Aufhänger im Zweitcall.",
+    options: [
+      { label: "Ist zeitaufwändig / nervig", next: "pitch30", icon: "⚡", cls: "neutral" },
+      { label: "Wir machen das selbst / mit bestehendem Partner", next: "einwand_selbst", icon: "🤝", cls: "neutral" },
+      { label: "Kein Interesse / brauche keine Hilfe", next: "einwand_kein_interesse", icon: "❌", cls: "nein" },
+      { label: "„Nerviges Thema\" (will das Gespräch loswerden)", next: "nerviges_thema", icon: "🙄", cls: "nein" }
+    ]
+  },
+
+  einwand_selbst: {
+    phase: "Einwand — machen wir selbst",
+    title: "Gegenfrage stellen",
+    text: "Verstehe. Würden Sie denn sagen, dass Sie für jede Anfrage direkt transparente Angebote auf dem Tisch haben, inklusive Preisvergleich und Verfügbarkeiten – ohne dass Sie selbst zig Hotels anrufen müssen?",
+    options: [
+      { label: "JA — läuft alles reibungslos", next: "selbst_ja", icon: "✅", cls: "ja" },
+      { label: "NEIN — nicht immer", next: "pitch30", icon: "❌", cls: "nein" }
+    ]
+  },
+
+  selbst_ja: {
+    phase: "Zufriedenheit prüfen",
+    title: "Nachhaken bei Tempo & Konditionen",
+    text: "Dann sind Sie ja bestens aufgestellt. Darf ich trotzdem kurz fragen, wie zufrieden Sie sind mit der Geschwindigkeit und den Konditionen, die Sie aktuell bekommen?",
+    options: [
+      { label: "Sehr zufrieden", next: "sehr_zufrieden", icon: "✅", cls: "ja" },
+      { label: "Nicht vollständig zufrieden", next: "pitch30", icon: "❌", cls: "nein" }
+    ]
+  },
+
+  sehr_zufrieden: {
+    phase: "Sehr zufrieden",
+    title: "Als Zweitpartner positionieren",
+    text: "Das freut mich zu hören, es ist immer ein gutes Zeichen, wenn die Zusammenarbeit gut läuft. Trotzdem ist es oft hilfreich, noch einen zusätzlichen Ansprechpartner in petto zu haben — gerade wenn es mal schnell gehen muss.",
+    tip: "Nicht drängen. Ein Satz Brücke, dann in den Pitch — der verkauft ohnehin nur den 15-Minuten-Termin, nicht die Dienstleistung.",
+    options: [
+      { label: "Weiter zum Pitch", next: "pitch30", icon: "→", cls: "neutral" }
+    ]
+  },
+
+  einwand_kein_interesse: {
+    phase: "Einwand — kein Interesse",
+    title: "Kurz abfedern, dann 30 Sekunden holen",
+    text: "Kann ich total nachvollziehen. Ich mag das auch nicht, unvorbereitet angerufen zu werden. Geben Sie mir 30 Sekunden — danach entscheiden Sie, ob es sich lohnt, weiterzureden.",
+    tip: "Kurz halten, keine Einwandschleife. Ziel ist nur die Erlaubnis für den Pitch.",
+    options: [
+      { label: "OK, hört zu", next: "pitch30", icon: "✅", cls: "ja" },
+      { label: "Bleibt ablehnend", next: "end_infos_frage", icon: "❌", cls: "nein" }
+    ]
+  },
+
+  nerviges_thema: {
+    phase: "Einwand — nerviges Thema",
+    title: "Einwand in unseren Vorteil drehen",
+    text: "Glücklicherweise ist es für uns nicht nervig — genau deswegen melden wir uns bei Ihnen. Geben Sie mir 30 Sekunden.",
+    options: [
+      { label: "Weiter zum Pitch", next: "pitch30", icon: "→", cls: "neutral" }
+    ]
+  },
+
+  pitch30: {
+    phase: "Pitch (30 Sekunden)",
+    title: "Der einzige Verkaufsmoment im Call 1",
+    pitch: true,
+    text: "Der Grund meines Anrufs: Wir nehmen Unternehmen die komplette Suche nach Hotels, Locations und allen Dienstleistern rund um ihre Events ab — statt tagelang zu telefonieren, bekommen Sie eine fertige Entscheidungsvorlage mit vergleichbaren Angeboten und Nettopreisen. Kostenlos, weil wir von den Anbietern bezahlt werden. Konkret: Ein Softwarekunde macht mit uns seit fünf Jahren seinen Summit mit 750 Teilnehmern — angefangen hat das mit einer kleinen Testanfrage. Ich würde gern herausfinden, ob das bei Ihnen auch funktioniert — haben Sie diese Woche 15 Minuten?",
+    tip: "Dieser Pitch verkauft NICHT unsere Dienstleistung — er verkauft ausschließlich den 15-Minuten-Folgetermin. Nach der letzten Frage bewusst schweigen und die Antwort abwarten.",
+    options: [
+      { label: "JA / offen — Termin machen", next: "terminanfrage", icon: "✅", cls: "ja" },
+      { label: "„Wo ist der Haken?\"", next: "haken", icon: "💡", cls: "neutral" },
+      { label: "„Schicken Sie mir erst Unterlagen\"", next: "einwand_unterlagen", icon: "📄", cls: "neutral" },
+      { label: "NEIN — kein Termin", next: "end_kein_termin", icon: "❌", cls: "nein" }
+    ]
+  },
+
+  haken: {
+    phase: "Kaufsignal — „Wo ist der Haken?\"",
+    title: "Modell transparent erklären",
+    text: "Für Sie ist unsere Arbeit komplett kostenlos — wir werden von den Anbietern mit einer Vermittlungsprovision bezahlt, ähnlich wie ein Reisebüro. Der einzige „Haken\": Es lohnt sich für uns nur, wenn die Anfrage wirklich über uns läuft. Deshalb passen wir zu Kunden, die einen festen Partner wollen — nicht zu Parallel-Anfragen an fünf Agenturen gleichzeitig.",
+    tip: "„Wo ist der Haken?\" ist ein KAUFSIGNAL, kein Einwand. Wer fragt, hat den Nutzen verstanden und sucht nach dem Preis. Ruhig und stolz erklären — und danach direkt zurück zur Terminfrage.",
+    options: [
+      { label: "Verstanden / okay — Termin machen", next: "terminanfrage", icon: "✅", cls: "ja" },
+      { label: "Will trotzdem parallel anfragen", next: "end_kein_termin", icon: "❌", cls: "nein" }
+    ]
+  },
+
+  einwand_unterlagen: {
+    phase: "Einwand — erst Unterlagen",
+    title: "Zeigen statt erzählen",
+    text: "Mache ich gern — aber Unterlagen sagen weniger als ein echter Vergleich. Deshalb der Vorschlag: 15 Minuten, ich verstehe Ihre Veranstaltungen, und dann zeigen wir es an Ihrer nächsten echten Anfrage, statt es zu erzählen. Passt das diese oder nächste Woche?",
+    options: [
+      { label: "OK — Termin machen", next: "terminanfrage", icon: "✅", cls: "ja" },
+      { label: "Will wirklich nur Unterlagen", next: "end_infos_frage", icon: "📄", cls: "neutral" }
+    ]
+  },
+
+  terminanfrage: {
+    phase: "Abschlusspfad — Termin finden",
+    title: "Konkreten Slot festmachen",
+    text: "Super, danke, dass Sie so offen waren. Welche Tage und Uhrzeiten würden Ihnen denn in den kommenden zwei Wochen zusagen?",
+    tip: "Zwei konkrete Vorschläge machen, statt offen zu fragen — das erhöht die Zusagequote. Termin sofort in den Kalender, Einladung noch während des Gesprächs raus.",
+    options: [
+      { label: "Termin gefunden", next: "termin_bestaetigen", icon: "✅", cls: "ja" },
+      { label: "Kein Termin möglich", next: "end_kein_termin", icon: "❌", cls: "nein" }
+    ]
+  },
+
+  termin_bestaetigen: {
+    phase: "Abschluss — Termin steht",
+    title: "Termin bestätigen & Erwartung setzen",
+    text: "Wunderbar, dann sende ich Ihnen gleich eine Einladung für den [Datum/Uhrzeit]. Ich brauche wirklich nur eine Viertelstunde: Sie erzählen mir, welche Veranstaltungen bei Ihnen anstehen, und ich zeige Ihnen, wie Sie uns ohne jedes Risiko testen können.",
+    isEnd: true,
+    action: "✓ Datum + Uhrzeit festhalten, Teams-Einladung sofort senden\n✓ Name, Telefon & Email aufnehmen\n✓ Antwort auf die Bedarfsfrage im CRM notieren\n✓ Übernachtungs-Antwort notieren (Vorab-Einschätzung G2)\n✓ Kontaktdaten + Homepage schicken\n✓ Für den Termin das Zweitcall-Tool öffnen: „Qualifizierungs-Call Skript (Call 2)\" in Notion"
+  },
+
+  end_kein_termin: {
+    phase: "Abschluss — kein Termin",
+    title: "Infomaterial & Wiedervorlage",
+    text: "Schade, dass es gerade nicht passt. Trotzdem sende ich Ihnen ein bisschen Infomaterial zu, sodass Sie sich in Ruhe einen Einblick verschaffen können. Darf ich einmal um Ihre E-Mailadresse bitten? Melden Sie sich dann einfach, wenn die nächste Veranstaltung ansteht. Vielen Dank für Ihre Zeit und noch einen angenehmen Tag.",
+    isEnd: true,
+    action: "✓ Emailadresse aufnehmen & Infomaterial zusenden\n✓ CRM: Wiedervorlage in 2–4 Wochen\n✓ Bei erkennbarem Potenzial (Übernachtung / 50+ Personen): Wiedervorlage priorisieren"
+  },
+
+  end_infos_frage: {
+    phase: "Abschluss — nur Infos",
+    title: "Sauber verabschieden",
+    text: "Alles gut, ich dränge nicht. Darf ich Ihnen unsere Infos einmal per Mail schicken, damit Sie sie haben, wenn Sie sie brauchen?",
+    isEnd: true,
+    action: "✓ Bei JA: Name & Emailadresse aufnehmen, Infomaterial senden\n✓ Bei NEIN: CRM-Status „kein Interesse\" · ggf. in 6 Monaten erneut angehen\n✓ Freundlich bleiben — kein Nachfassen im gleichen Gespräch"
+  }
+};
+
+const totalDepth = 7;
+let history = [], current = 'start';
+
+function esc(t) { return t.replace(/\n/g, '<br>'); }
+
+function render() {
+  const s = steps[current];
+  const prog = document.getElementById('progress');
+  prog.innerHTML = '';
+  for (let i = 0; i < totalDepth; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < history.length ? ' done' : i === history.length ? ' active' : '');
+    prog.appendChild(d);
+  }
+  const bc = document.getElementById('breadcrumb');
+  if (history.length === 0) { bc.innerHTML = ''; }
+  else {
+    const parts = history.map(h => `<span>${steps[h.step] ? steps[h.step].phase : h.step}</span>`);
+    parts.push(`<span style="color:#1a1a18;font-weight:500">${s.phase}</span>`);
+    bc.innerHTML = parts.join(' <span>›</span> ');
+  }
+  let html = '';
+  if (history.length > 0) html += `<button class="back-btn" onclick="goBack()">← Zurück</button>`;
+  html += `<div class="card"><div class="phase">${s.phase}</div><div class="title">${s.title}</div>`;
+  if (s.text) {
+    html += `<div class="text-box${s.pitch ? ' pitch' : ''}"><button class="copy-btn" onclick="copyText(this)">Kopieren</button>${esc(s.text)}</div>`;
+  }
+  if (s.tip) html += `<div class="tip">${s.tip}</div>`;
+  if (s.variants) html += `<div class="variants"><b>Wenn vorher schon Kontakt war</b>${s.variants}</div>`;
+  if (s.isEnd) {
+    html += `</div><div class="end-box"><div class="end-label">Nächste Aktion</div><div class="action-box">${esc(s.action || '')}</div></div>`;
+    html += `<button class="restart-btn" onclick="restart()">↺ Neues Gespräch starten</button>`;
+  } else {
+    html += `<div class="actions">`;
+    s.options.forEach(opt => {
+      html += `<button class="btn ${opt.cls || ''}" onclick="go('${opt.next}')">${opt.icon ? opt.icon + ' ' : ''}${opt.label}</button>`;
+    });
+    html += `</div></div>`;
+  }
+  document.getElementById('content').innerHTML = html;
+}
+
+function copyText(btn) {
+  const box = btn.parentElement;
+  const text = box.innerText.replace('Kopieren', '').replace('✓ Kopiert', '').trim();
+  if (navigator.clipboard) navigator.clipboard.writeText(text);
+  btn.textContent = '✓ Kopiert';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Kopieren'; btn.classList.remove('copied'); }, 2000);
+}
+
+function go(next) { history.push({ step: current }); current = next; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function goBack() { if (history.length) { current = history.pop().step; render(); } }
+function restart() { history = []; current = 'start'; render(); }
+function jumpTo(step) {
+  if (!steps[step]) return;
+  history = []; current = step; render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+render();
+</script>
+
+<hr class="section-divider">
+<div class="section-title">Gesprächsstrang — Übersicht auf einen Blick</div>
+<div class="section-hint"><strong>Verloren im Gespräch?</strong> Such im Strang die Box mit dem Satz, den du gerade gesagt hast, und klick sie an — das Klick-Tool oben springt genau an diese Stelle und du machst von dort weiter. Jede Box hier ist wörtlich derselbe Text wie im Tool, kein gekürzter Auszug.</div>
+<div class="overview">
+  <div class="legend">
+    <div class="li"><div class="ld" style="background:#AFA9EC"></div> Einstieg</div>
+    <div class="li"><div class="ld" style="background:#85B7EB"></div> Entscheidungsfrage</div>
+    <div class="li"><div class="ld" style="background:#5DCAA5"></div> Einwand / Brücke (sprechen)</div>
+    <div class="li"><div class="ld" style="background:#EF9F27"></div> Pitch &amp; Modell</div>
+    <div class="li"><div class="ld" style="background:#B4B2A9"></div> Gesprächsende</div>
+    <div class="li" style="margin-left:auto;color:#534AB7;font-weight:600">↳ Box anklicken = Tool springt dorthin</div>
+  </div>
+  <div id="overview-body"></div>
+</div>
+
+<script>
+/* Der Strang wird aus demselben steps-Objekt erzeugt, das das Klick-Tool steuert.
+   Texte, Phasen-Namen und Antwort-Optionen können deshalb nicht auseinanderlaufen.
+   Handgebaut ist nur die Anordnung der Verzweigungen. */
+const layout = [
+  { t:'node', step:'start', cls:'n-start' },
+  { t:'hint', text:'Gab es vorher LinkedIn- oder Mailkontakt, wird nur dieser erste Satz getauscht — der weitere Verlauf ist identisch.' },
+  { t:'fork', of:'start', cols:[
+    { opt:0, items:[
+      { t:'node', step:'q_uebernachtung', cls:'n-q', badge:'neu in v5' },
+      { t:'chain', of:'q_uebernachtung', opt:0, text:'G2 erfüllt — starkes Signal' },
+      { t:'chain', of:'q_uebernachtung', opt:1, text:'G2 erfüllt über die Teilnehmerzahl' },
+      { t:'chain', of:'q_uebernachtung', opt:2, text:'G2 = 0 · im CRM notieren, nicht nachjagen' },
+      { t:'hint', text:'alle drei Antworten → weiter zur Zuständigkeit ↓' }
+    ]},
+    { opt:1, items:[
+      { t:'node', step:'q1_auffang', cls:'n-q' },
+      { t:'fork', of:'q1_auffang', cols:[
+        { opt:0, items:[ { t:'hint', text:'Zimmerkontingente SIND Übernachtungen — G2 ist damit schon erfüllt. Die Übernachtungsfrage entfällt, direkt weiter zur Zuständigkeit ↓' } ] },
+        { opt:1, items:[ { t:'end', step:'end_kein_bedarf' } ] }
+      ]}
+    ]}
+  ]},
+  { t:'merge', text:'beide weiterführenden Wege laufen hier zusammen — es wird niemand abgelehnt' },
+
+  { t:'node', step:'q2', cls:'n-q' },
+  { t:'fork', of:'q2', cols:[
+    { opt:0 },
+    { opt:1, items:[ { t:'end', step:'weiterleitung' } ] }
+  ]},
+  { t:'divider' },
+
+  { t:'node', step:'bedarf', cls:'n-q' },
+  { t:'fork', of:'bedarf', cols:[
+    { opt:0 },
+    { opt:1, items:[
+      { t:'node', step:'einwand_selbst', cls:'n-q' },
+      { t:'chain', of:'einwand_selbst', opt:1, text:'direkt zum Pitch ↓' },
+      { t:'chain', of:'einwand_selbst', opt:0, text:'einmal nachhaken:' },
+      { t:'node', step:'selbst_ja', cls:'n-q' },
+      { t:'chain', of:'selbst_ja', opt:1, text:'zum Pitch ↓' },
+      { t:'chain', of:'selbst_ja', opt:0, text:'Brücke, dann Pitch:' },
+      { t:'node', step:'sehr_zufrieden', cls:'n-say' }
+    ]},
+    { opt:2, items:[
+      { t:'node', step:'einwand_kein_interesse', cls:'n-say' },
+      { t:'chain', of:'einwand_kein_interesse', opt:0, text:'zum Pitch ↓' },
+      { t:'chain', of:'einwand_kein_interesse', opt:1, text:'Ende:' },
+      { t:'end', step:'end_infos_frage' }
+    ]},
+    { opt:3, items:[
+      { t:'node', step:'nerviges_thema', cls:'n-say' },
+      { t:'hint', text:'→ Pitch ↓' }
+    ]}
+  ]},
+  { t:'merge', text:'ab hier ein einziger Weg für alle Zweige' },
+
+  { t:'node', step:'pitch30', cls:'n-pitch', badge:'neu in v5' },
+  { t:'fork', of:'pitch30', cols:[
+    { opt:0 },
+    { opt:1, items:[
+      { t:'node', step:'haken', cls:'n-act', badge:'neu in v5' },
+      { t:'chain', of:'haken', opt:0, text:'Termin finden ↓' },
+      { t:'chain', of:'haken', opt:1, text:'Ende — kein Termin' }
+    ]},
+    { opt:2, items:[
+      { t:'node', step:'einwand_unterlagen', cls:'n-say' },
+      { t:'chain', of:'einwand_unterlagen', opt:0, text:'Termin finden ↓' },
+      { t:'chain', of:'einwand_unterlagen', opt:1, text:'Ende — nur Infos' }
+    ]},
+    { opt:3, items:[ { t:'end', step:'end_kein_termin' } ] }
+  ]},
+  { t:'divider' },
+
+  { t:'node', step:'terminanfrage', cls:'n-q' },
+  { t:'fork', of:'terminanfrage', cols:[
+    { opt:0, items:[ { t:'end', step:'termin_bestaetigen' } ] },
+    { opt:1, items:[ { t:'end', step:'end_kein_termin' } ] }
+  ]}
+];
+
+function ovEsc(t) { return t.replace(/\n/g, '<br>'); }
+function tagCls(cls) { return cls === 'ja' ? 'tag-ja' : cls === 'nein' ? 'tag-nein' : 'tag-info'; }
+
+function ovNode(step, cls, badge) {
+  const s = steps[step];
+  const b = badge ? ` <span class="tag tag-neu">${badge}</span>` : '';
+  const label = `<div class="ov-label">${s.phase}${b}</div>`;
+  const body = s.text ? `„${ovEsc(s.text)}"` : `<em>${s.title}</em>`;
+  return `<div class="ov-node ${cls} ov-click" data-step="${step}" title="Anklicken — das Tool oben springt an diese Stelle">${label}${body}</div>`;
+}
+
+function ovEnd(step) {
+  const s = steps[step];
+  let html = '';
+  if (s.text) html += ovNode(step, 'n-say');
+  html += `<div class="ov-node n-end ov-click" data-step="${step}" title="Anklicken — das Tool oben springt an diese Stelle"><div class="ov-label">Nächste Aktion — ${s.phase}</div>${ovEsc(s.action || '')}</div>`;
+  return html;
+}
+
+function ovItems(items) { return (items || []).map(ovRender).join(''); }
+
+function ovRender(it) {
+  if (it.t === 'node')    return ovNode(it.step, it.cls, it.badge);
+  if (it.t === 'end')     return ovEnd(it.step);
+  if (it.t === 'hint')    return `<div class="ov-node n-hint">${it.text}</div>`;
+  if (it.t === 'divider') return `<div class="ov-divider"></div><div class="v"><div class="vline"></div></div>`;
+  if (it.t === 'merge')   return `<div class="merge-bar"><div class="merge-line"></div>${it.text}<div class="merge-line"></div></div><div class="v"><div class="vline"></div></div>`;
+  if (it.t === 'chain') {
+    const o = steps[it.of].options[it.opt];
+    return `<div class="chain"><span class="tag ${tagCls(o.cls)}">${o.icon} ${o.label}</span><span class="chain-txt">→ ${it.text}</span></div>`;
+  }
+  if (it.t === 'fork') {
+    const parent = steps[it.of];
+    const n = it.cols.length;
+    let html = `<div class="fork"><div class="fork-stem"><div class="vline"></div></div><div class="fork-bar n${n}"></div><div class="fork-cols">`;
+    it.cols.forEach(c => {
+      const o = parent.options[c.opt];
+      const inner = (c.items && c.items.length)
+        ? ovItems(c.items)
+        : `<div class="ov-node n-hint">weiter zu „${steps[o.next].phase}" ↓</div>`;
+      html += `<div class="fork-col"><div class="vline"></div><span class="tag ${tagCls(o.cls)}">${o.icon} ${o.label}</span><div class="vline"></div><div class="fork-col-inner">${inner}</div></div>`;
+    });
+    return html + `</div></div>`;
+  }
+  return '';
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  const body = document.getElementById('overview-body');
+  body.innerHTML = layout.map(it => {
+    const h = ovRender(it);
+    return (it.t === 'node') ? `<div class="center-box">${h}</div>` : h;
+  }).join('');
+  body.addEventListener('click', function (e) {
+    const el = e.target.closest('.ov-click');
+    if (!el) return;
+    jumpTo(el.getAttribute('data-step'));
+  });
+});
+</script>
+<hr class="section-divider">
+<div class="section-title">Was ist neu in v5</div>
+<div class="changelog">
+  <h3>Änderungen gegenüber v4.1</h3>
+  <ul>
+    <li><strong>Nur noch ein Einstieg.</strong> Einstieg A/B/C sind weg — in der Regel ist es ein Kaltanruf ohne Vorkontakt, und ab der ersten Frage war der Verlauf ohnehin identisch. Die beiden Alternativ-Sätze für LinkedIn und Mailkontakt stehen als Hinweis direkt auf dem Einstiegs-Screen.</li>
+    <li><strong>Neuer Pitch-Screen (30 Sekunden)</strong> als eigener Schritt direkt vor der Terminfrage. Er verkauft nicht unsere Dienstleistung, sondern ausschließlich den 15-Minuten-Folgetermin.</li>
+    <li><strong>Die Übernachtungsfrage entfällt nach der Auffangfrage.</strong> Wer bestätigt, dass er Zimmerkontingente für Gruppen bucht, hat damit schon Übernachtungen — danach noch nach Veranstaltungen mit Übernachtung zu fragen wäre doppelt. Dieser Weg geht direkt zur Zuständigkeit, G2 gilt über die Zimmerkontingente als erfüllt.</li>
+    <li><strong>Neue Qualifizierungsfrage „Sind da auch Veranstaltungen mit Übernachtung dabei?"</strong> direkt nach Qualifizierung 1 — sie entscheidet über Goldstandard G2, bevor Zeit in Zuständigkeit und Pitch investiert wird.</li>
+    <li><strong>Alte Mini-Pitches entschlackt:</strong> Die früheren Screens „Nicht zufrieden — Pitch" und „Nerviges Thema" enthielten je einen eigenen Verkaufsabsatz samt Terminfrage. Sie sind jetzt kurze Brücken, alle Pfade laufen in den einen Pitch-Screen. Ein Pitch, eine Terminfrage, kein Doppelverkauf.</li>
+    <li><strong>„Wo ist der Haken?" ist ein eigener Screen</strong> mit dem Modell-Baustein — als Kaufsignal behandelt, nicht als Einwand.</li>
+    <li><strong>Bezahl-Wording korrigiert:</strong> überall „weil wir von den Anbietern bezahlt werden" statt „weil uns das Hotel bezahlt". Provision kommt nicht nur von Hotels, sondern von allen Anbietern.</li>
+    <li><strong>Sprachregel durchgezogen:</strong> überall „Hotels, Locations und alle Dienstleister rund um Ihr Event".</li>
+    <li><strong>Gesprächsstrang als Rettungsanker:</strong> Der Strang unten wird aus demselben Skript erzeugt wie das Klick-Tool — Texte, Phasennamen und Antwortoptionen sind garantiert wörtlich identisch und können nicht auseinanderlaufen. Wenn du beim Klicken den Faden verlierst, suchst du im Strang den Satz, den du gerade gesagt hast, klickst die Box an, und das Tool springt an genau diese Stelle.</li>
+  </ul>
+</div>
+</body>
+</html>
