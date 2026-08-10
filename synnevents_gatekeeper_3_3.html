@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synnevents – Gatekeeper-Skript v3</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; min-height: 100vh; padding: 2rem 1rem; }
+.tool-wrap { display: flex; justify-content: center; }
+.container { width: 100%; max-width: 640px; }
+.header { margin-bottom: 1rem; }
+.header-title { font-size: 13px; font-weight: 600; color: #534AB7; text-transform: uppercase; letter-spacing: 0.07em; }
+.header-sub { font-size: 22px; font-weight: 500; color: #1a1a18; margin-top: 4px; }
+.header-ver { display: inline-block; font-size: 11px; font-weight: 700; color: #0F6E56; background: #E1F5EE; border: 1px solid #5DCAA5; border-radius: 4px; padding: 1px 7px; margin-left: 6px; vertical-align: 3px; }
+.scope { font-size: 12.5px; color: #6b6880; background: #EEEDFE; border: 1px solid #AFA9EC; border-radius: 8px; padding: 0.6rem 0.9rem; margin-bottom: 1.25rem; line-height: 1.6; }
+.progress { display: flex; gap: 6px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.2s; }
+.dot.active { background: #534AB7; }
+.dot.done { background: #5DCAA5; }
+.breadcrumb { font-size: 12px; color: #999; margin-bottom: 1rem; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; min-height: 18px; }
+.breadcrumb span { color: #888; }
+.card { background: #fff; border: 1px solid #e8e6e0; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+.phase { font-size: 11px; font-weight: 600; color: #534AB7; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+.text-box { font-size: 15px; color: #1a1a18; line-height: 1.65; background: #f5f4f0; border-radius: 8px; padding: 0.9rem 2.6rem 0.9rem 1rem; border-left: 3px solid #534AB7; margin-bottom: 0.5rem; position: relative; }
+.box-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #534AB7; margin: 0.9rem 0 5px; }
+.box-label:first-child { margin-top: 0; }
+.copy-btn { position: absolute; top: 8px; right: 8px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 3px 8px; font-size: 11px; color: #888; cursor: pointer; font-family: inherit; }
+.copy-btn:hover { background: #eee; }
+.copy-btn.copied { color: #0F6E56; border-color: #5DCAA5; }
+.prefix { background: #fff; border: 1px solid #e8e6e0; border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 0.6rem; }
+.prefix-head { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #534AB7; margin-bottom: 6px; }
+.prefix-row { display: flex; gap: 8px; align-items: baseline; font-size: 14px; line-height: 1.6; padding: 2px 0; }
+.prefix-when { flex: 0 0 8.5rem; font-size: 11.5px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.03em; }
+.prefix-say { color: #1a1a18; }
+.fold { margin-top: 0.7rem; border: 1px dashed #ddd; border-radius: 8px; background: #f9f8f5; }
+.fold > summary { cursor: pointer; padding: 0.5rem 0.8rem; font-size: 12.5px; color: #888; list-style: none; }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary::before { content: '▸ '; }
+.fold[open] > summary::before { content: '▾ '; }
+.fold-body { padding: 0 0.8rem 0.7rem; }
+.actions { display: flex; flex-direction: column; gap: 8px; margin-top: 1.25rem; }
+.btn { padding: 11px 16px; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #1a1a18; font-size: 14px; cursor: pointer; text-align: left; transition: background 0.15s; display: flex; align-items: center; gap: 8px; font-family: inherit; line-height: 1.45; }
+.btn:hover { background: #f5f4f0; }
+.btn.ja { border-color: #0F6E56; color: #0F6E56; }
+.btn.ja:hover { background: #E1F5EE; }
+.btn.nein { border-color: #A32D2D; color: #A32D2D; }
+.btn.nein:hover { background: #FCEBEB; }
+.btn.neutral { border-color: #534AB7; color: #534AB7; }
+.btn.neutral:hover { background: #EEEDFE; }
+.end-box { background: #f5f4f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+.end-label { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+.end-label::before { content: '✓ '; color: #0F6E56; }
+.action-box { background: #fff; border: 1px solid #e8e6e0; border-radius: 8px; padding: 0.75rem 1rem; font-size: 14px; color: #1a1a18; line-height: 1.6; }
+.restart-btn { padding: 8px 14px; border-radius: 8px; border: 1px solid #ddd; background: transparent; color: #888; font-size: 13px; cursor: pointer; font-family: inherit; margin-top: 0.5rem; }
+.restart-btn:hover { background: #f5f4f0; }
+.back-btn { background: transparent; border: none; color: #bbb; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 4px; font-family: inherit; }
+.back-btn:hover { color: #888; }
+
+.section-divider { max-width: 960px; margin: 3rem auto 2rem; border: none; border-top: 2px solid #e0ddd6; }
+.section-title { max-width: 960px; margin: 0 auto 0.4rem; font-size: 13px; font-weight: 600; color: #534AB7; text-transform: uppercase; letter-spacing: 0.07em; }
+.section-hint { max-width: 960px; margin: 0 auto 1.5rem; font-size: 12.5px; color: #888; }
+.overview { max-width: 960px; margin: 0 auto 4rem; font-size: 12px; color: #1a1a18; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; padding: 8px 14px; background: #fff; border: 1px solid #e8e6e0; border-radius: 8px; font-size: 11px; color: #666; }
+.li { display: flex; align-items: center; gap: 6px; }
+.ld { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.ov-node { border-radius: 7px; padding: 9px 12px; font-size: 11.5px; line-height: 1.55; width: 100%; }
+.ov-node + .ov-node { margin-top: 6px; }
+.ov-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.6; margin-bottom: 3px; font-style: normal; }
+.n-start { background: #EEEDFE; border: 1.5px solid #AFA9EC; color: #26215C; }
+.n-q     { background: #E6F1FB; border: 1.5px solid #85B7EB; color: #042C53; }
+.n-say   { background: #E1F5EE; border: 1.5px solid #5DCAA5; color: #04342C; font-style: italic; }
+.n-act   { background: #FAEEDA; border: 1.5px solid #EF9F27; color: #412402; }
+.n-end   { background: #F1EFE8; border: 1.5px solid #B4B2A9; color: #2C2C2A; }
+.n-goal  { background: #EAF3DE; border: 2.5px solid #97C459; color: #173404; }
+.n-goal .ov-label { opacity: 1; color: #3d6b10; font-size: 11px; }
+.n-hint  { background: transparent; border: 1px dashed #C0BDCC; color: #6b6880; font-style: italic; text-align: center; font-size: 11px; }
+.tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 4px; white-space: nowrap; }
+.tag-ja   { background: #EAF3DE; color: #173404; border: 1px solid #97C459; }
+.tag-nein { background: #FCEBEB; color: #501313; border: 1px solid #F09595; }
+.tag-info { background: #FAEEDA; color: #412402; border: 1px solid #EF9F27; }
+.tag-neu  { background: #EEEDFE; color: #26215C; border: 1px solid #AFA9EC; }
+.merge-bar { display: flex; align-items: center; gap: 8px; margin: 12px 0 6px; color: #999; font-size: 11px; }
+.merge-line { flex: 1; height: 1px; background: #ccc; }
+.v { display: flex; justify-content: center; }
+.vline { width: 2px; background: #C0BDCC; min-height: 12px; }
+.ov-divider { height: 1px; background: #E0DED8; margin: 16px 0; }
+.center-box { max-width: 620px; margin: 0 auto; }
+.fork { display: flex; flex-direction: column; align-items: stretch; }
+.fork-stem { display: flex; justify-content: center; }
+.fork-bar { height: 2px; background: #C0BDCC; }
+.fork-bar.n2 { margin: 0 25%; }
+.fork-bar.n3 { margin: 0 16.6%; }
+.fork-bar.n4 { margin: 0 12.5%; }
+.fork-bar.n5 { margin: 0 10%; }
+.fork-cols { display: flex; align-items: flex-start; }
+.fork-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0 8px; }
+.fork-col-inner { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.chain { display: flex; align-items: center; gap: 6px; font-size: 10.5px; color: #777; padding-left: 2px; flex-wrap: wrap; }
+.chain-txt { font-style: italic; }
+.twoup { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.twoup-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #888; text-align: center; margin-bottom: 4px; }
+.ov-click { cursor: pointer; transition: box-shadow 0.12s, transform 0.12s; }
+.ov-click:hover { box-shadow: 0 0 0 3px rgba(83,74,183,0.22); transform: translateY(-1px); }
+.ov-click:active { transform: none; }
+.sect-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #534AB7; margin: 18px 0 8px; }
+
+.why { max-width: 960px; margin: 0 auto 4rem; }
+.why-intro { background: #EEEDFE; border: 1px solid #AFA9EC; border-radius: 8px; padding: 0.9rem 1.1rem; font-size: 12.5px; line-height: 1.75; color: #26215C; margin-bottom: 1rem; }
+.why-intro ul { margin: 0.4rem 0 0; padding-left: 1.1rem; }
+.why-item { background: #fff; border: 1px solid #e8e6e0; border-radius: 8px; padding: 0.8rem 1.1rem; margin-bottom: 0.6rem; }
+.why-phase { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #534AB7; margin-bottom: 2px; }
+.why-title { font-size: 13.5px; font-weight: 600; color: #1a1a18; margin-bottom: 4px; }
+.why-text { font-size: 12.5px; color: #555; line-height: 1.7; }
+.changelog { max-width: 960px; margin: 0 auto 2rem; background: #fff; border: 1px solid #e8e6e0; border-radius: 8px; padding: 1rem 1.25rem; font-size: 12.5px; line-height: 1.7; color: #333; }
+.changelog h3 { font-size: 11px; font-weight: 700; color: #534AB7; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+.changelog ul { margin: 0; padding-left: 1.1rem; }
+@media (max-width: 720px) {
+  .fork-cols { flex-direction: column; }
+  .fork-bar { display: none; }
+  .fork-col { padding: 0; }
+  .twoup { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+<div class="container">
+  <div class="header">
+    <div class="header-title">Synnevents</div>
+    <div class="header-sub">Gatekeeper-Skript<span class="header-ver">v3</span></div>
+  </div>
+  <div class="scope">Dieses Skript gilt nur für Anrufe über die <strong>Zentrale oder das Vorzimmer</strong>. Wenn du eine Durchwahl hast, landest du direkt bei der Zielperson — dann gleich mit dem Kaltakquise-Skript arbeiten.</div>
+  <div class="progress" id="progress"></div>
+  <div id="breadcrumb" class="breadcrumb"></div>
+  <div id="content"></div>
+</div>
+</div>
+
+<script>
+const steps = {
+
+
+
+  start: {
+    phase: "Einstieg wählen",
+    title: "Habe ich einen Namen oder nicht?",
+    tip: "Mit Namen ist der Einstieg kurz und funktioniert erfahrungsgemäß gut — nicht durch Inhalt, sondern durch Selbstverständlichkeit. Ohne Namen brauchst du einen anderen Satz, weil du nicht nach einer Person fragen kannst, die du nicht benennen kannst.",
+    options: [
+      { label: "Ich habe einen Namen recherchiert", next: "einstieg_name", icon: "🎯", cls: "ja" },
+      { label: "Ich weiß nicht, wer zuständig ist", next: "einstieg_ohne_name", icon: "🔍", cls: "neutral" }
+    ]
+  },
+
+  einstieg_name: {
+    phase: "Einstieg A — mit Namen",
+    title: "Kurz, ruhig, ohne Begründung — sie wirkt durch Selbstverständlichkeit",
+    text: "Hallo, hier ist Josephine Bütefisch von Synnevents. Ich würde gerne mit Frau/Herrn [Nachname] sprechen … [kurze Pause] … Frau/Herr [Vorname] [Nachname]. Können Sie mich bitte zu ihm/ihr durchstellen?",
+    tip: "Bewusst ohne Grund. Dieser Satz führt erfahrungsgemäß oft direkt zur Durchstellung, und das liegt an der Selbstverständlichkeit, mit der er gesagt wird — nicht am Inhalt. Wer zögert oder von sich aus erklärt, signalisiert, dass er eigentlich nicht durchgestellt werden dürfte. Die Pause vor dem vollen Namen ist Absicht: Sie klingt wie Nachschauen, nicht wie Unsicherheit. Der Grund kommt erst, wenn danach gefragt wird.",
+    options: [
+      { label: "Wird durchgestellt", next: "durchgestellt", icon: "✅", cls: "ja" },
+      { label: "„Worum geht es genau?\"", next: "worum", icon: "❓", cls: "neutral" },
+      { label: "„Waren Sie schon in Kontakt / haben Sie die Durchwahl?\"", next: "kontakt_test", icon: "🔎", cls: "neutral" },
+      { label: "„Schreiben Sie eine E-Mail.\"", next: "email", icon: "✉️", cls: "neutral" },
+      { label: "„Die Person arbeitet nicht mehr hier.\"", next: "nicht_mehr_da", icon: "🚪", cls: "neutral" },
+      { label: "Gerade nicht erreichbar", next: "nicht_erreichbar", icon: "⏱️", cls: "neutral" },
+      { label: "Nicht im Haus", next: "nicht_im_haus", icon: "🏢", cls: "neutral" }
+    ]
+  },
+
+  einstieg_ohne_name: {
+    phase: "Einstieg B — ohne Namen",
+    title: "Nach der zuständigen Person fragen — mit Entscheider-Filter",
+    text: "Hallo, hier ist Josephine Bütefisch von Synnevents. Ich bräuchte kurz Ihre Hilfe bei der richtigen Person: Wer organisiert bei Ihnen Firmenveranstaltungen und Gruppenbuchungen — also Tagungen, Kundenevents, Zimmerkontingente für Gruppen — und entscheidet am Ende auch, wo gebucht wird?",
+    tip: "Drei Dinge passieren in diesem Satz gleichzeitig. „Ich bräuchte kurz Ihre Hilfe\" verteilt die Rollen: Der Empfang ist die Person mit dem Wissen, nicht das Hindernis. Der Anlass steht vor der Aufzählung, weil der Empfang den Anruf über den Anlass einer Kollegin zuordnet, nicht über Lieferantenkategorien. Und „entscheidet am Ende auch, wo gebucht wird\" setzt zwei Filter auf einmal: Es hält dich vom Travel Management fern, wenn das dort nur Einzelreisen abwickelt, und von Planern ohne Budget.",
+    options: [
+      { label: "Nennt einen Namen / stellt durch", next: "durchgestellt", icon: "✅", cls: "ja" },
+      { label: "„Das macht unser Travel Management.\"", next: "travel", icon: "✈️", cls: "neutral" },
+      { label: "„Wir geben keine Namen heraus.\"", next: "keine_namen", icon: "🔒", cls: "neutral" },
+      { label: "„Worum geht es genau?\"", next: "worum_ohne_name", icon: "❓", cls: "neutral" },
+      { label: "„Schreiben Sie eine E-Mail.\"", next: "email", icon: "✉️", cls: "neutral" }
+    ]
+  },
+
+  worum_ohne_name: {
+    phase: "„Worum geht es genau?\" — ohne Namen",
+    title: "Denselben Inhalt sagen, aber den Namen erfragen statt verwenden",
+    text: "Wir organisieren für Unternehmen Hotels, Locations und alle Dienstleister rund um Firmenveranstaltungen und Gruppenbuchungen — kostenlos, weil wir von den Anbietern bezahlt werden. Ob das für Sie überhaupt passt, kläre ich in zwei Minuten mit der Person, die das bei Ihnen entscheidet. Wer wäre das — und können Sie mich gleich durchstellen?",
+    tip: "Inhaltlich dieselbe Antwort wie auf dem Weg mit Namen, aber mit einem entscheidenden Unterschied: Du kannst hier keinen Namen nennen, weil du ihn noch nicht hast. Deshalb endet der Satz mit zwei Bitten in einer — wer ist es, und stellen Sie mich hin. Das ist bewusst kombiniert: Wer den Namen nennt, verbindet in der Regel gleich mit, und du musst nicht zweimal fragen.",
+    options: [
+      { label: "Nennt den Namen / stellt durch", next: "durchgestellt", icon: "✅", cls: "ja" },
+      { label: "„Das macht unser Travel Management.\"", next: "travel", icon: "✈️", cls: "neutral" },
+      { label: "„Wir geben keine Namen heraus.\"", next: "keine_namen", icon: "🔒", cls: "neutral" },
+      { label: "„Schreiben Sie eine E-Mail.\"", next: "email", icon: "✉️", cls: "neutral" },
+      { label: "Blockt weiter ab", next: "blockt", icon: "🚧", cls: "nein" }
+    ]
+  },
+
+  worum: {
+    phase: "„Worum geht es genau?\"",
+    title: "Konkret antworten — Vagheit wird als Verkaufsversuch gelesen",
+    text: "Wir organisieren für Unternehmen Hotels, Locations und alle Dienstleister rund um Firmenveranstaltungen und Gruppenbuchungen — kostenlos, weil wir von den Anbietern bezahlt werden. Ob das für Sie überhaupt passt, kläre ich in zwei Minuten mit Frau/Herrn [Nachname]. Können Sie mich kurz durchstellen?",
+    tip: "Der frühere Satz sprach von „Optimierungspotenzial\" und „zeitkritisch\". Beides trägt nicht: Vagheit wirkt beim Empfang nicht diskret, sondern nach jemandem, der etwas verbirgt — und genau den sortiert er aus. „Zeitkritisch\" ist bei einem Kaltanruf außerdem schlicht nicht wahr. Die konkrete Antwort funktioniert besser, weil sie einordbar ist: Der Empfang kann den Anruf einer Abteilung zuweisen. „Ob das für Sie überhaupt passt\" nimmt zusätzlich den Verkaufsdruck raus und ist wahr — genau das prüft der Folgetermin.",
+    options: [
+      { label: "Wird durchgestellt", next: "durchgestellt", icon: "✅", cls: "ja" },
+      { label: "„Waren Sie schon in Kontakt?\"", next: "kontakt_test", icon: "🔎", cls: "neutral" },
+      { label: "„Schreiben Sie eine E-Mail.\"", next: "email", icon: "✉️", cls: "neutral" },
+      { label: "„Das macht unser Travel Management.\"", next: "travel", icon: "✈️", cls: "neutral" },
+      { label: "Blockt weiter ab", next: "blockt", icon: "🚧", cls: "nein" }
+    ]
+  },
+
+  kontakt_test: {
+    phase: "Beziehungstest — Kontakt oder Durchwahl",
+    title: "Nur beantworten, was gefragt wurde",
+    prefixLabel: "Anfang wählen — je nachdem, was gefragt wurde",
+    prefix: [
+      { when: "Nach Kontakt", text: "Nein, wir hatten noch keinen Kontakt." },
+      { when: "Nach Durchwahl", text: "Nein, die habe ich nicht." },
+      { when: "Nach beidem", text: "Nein, weder noch." }
+    ],
+    text: "Genau deshalb bin ich bei Ihnen. Ich stelle mich lieber einmal kurz persönlich vor, als eine Mail zu schicken, die untergeht — und dafür brauche ich jetzt Ihre Hilfe.",
+    foldLabel: "Falls es vorher schon schriftlichen Kontakt gab",
+    fold: "Telefoniert haben wir noch nicht. Geschrieben schon — ich hatte ihm/ihr auf LinkedIn eine Nachricht geschickt und wollte mich jetzt einmal persönlich melden.",
+    tip: "Beide Fragen sind ein Test, ob es eine bestehende Verbindung gibt, und sie kommen einzeln oder als Doppelfrage. Entscheidend ist: nur beantworten, was gefragt wurde. Wer auf „Waren Sie schon in Kontakt?\" unaufgefordert auch noch die Durchwahl erwähnt, klingt nach Rechtfertigung — und „weder noch\" passt nur, wenn wirklich beides gefragt wurde. Der zweite Teil des Satzes ist dagegen immer derselbe, deshalb steht er als ganzer Block da. Das Zögern ist hier das eigentliche Risiko, nicht die Wahrheit: Wer eine Durchwahl hätte, würde nicht in der Zentrale anrufen, und das weiß der Empfang selbst. Wer es offen ausspricht, wirkt nicht wie jemand, der erwischt wurde. Nie behaupten, man kenne die Person.",
+    options: [
+      { label: "Wird durchgestellt", next: "durchgestellt", icon: "✅", cls: "ja" },
+      { label: "„Schreiben Sie eine E-Mail.\"", next: "email", icon: "✉️", cls: "neutral" },
+      { label: "Blockt weiter ab", next: "blockt", icon: "🚧", cls: "nein" }
+    ]
+  },
+
+  email: {
+    phase: "„Schreiben Sie eine E-Mail\"",
+    title: "Zustimmen, nicht widersprechen — und beides bekommen",
+    text: "Das verstehe ich, und ich halte mich daran — die Mail schicke ich. Ehrlich gesagt gehen solche Mails aber meistens unter, weil sie wie Werbung aussehen, deshalb der Anruf. Wissen Sie, wann die zuständige Person üblicherweise am Platz ist? Dann versuche ich es einmal direkt, und die Mail bekommt sie trotzdem.",
+    tip: "„Bei uns läuft alles per Mail\" ist ein Satz, den man nicht gewinnt. Wer widerspricht, bestätigt den Verdacht, ein Verkäufer zu sein. Deshalb zustimmen, offen sagen warum du trotzdem anrufst, und mit einer Frage enden, die der Empfang beantworten darf. Du erfüllst die Bitte und hältst den Telefonweg offen — beides gleichzeitig, ohne zu tricksen.",
+    options: [
+      { label: "Nennt eine gute Uhrzeit", next: "rueckruf", icon: "✅", cls: "ja" },
+      { label: "Bleibt bei der Mail", next: "email_adresse", icon: "✉️", cls: "neutral" }
+    ]
+  },
+
+  email_adresse: {
+    phase: "Mail — dann aber richtig",
+    title: "Statt info@ die richtige Adresse und eine interne Referenz",
+    text: "Alles klar. Dann sagen Sie mir bitte noch, an welche Adresse das am besten geht — und darf ich im Betreff erwähnen, dass Sie mich weiterverwiesen haben? Dann weiß die Person, dass die Mail nicht aus dem Nichts kommt.",
+    isEnd: true,
+    action: "✓ Richtige Mailadresse notieren, nicht info@\n✓ Mail noch heute raus, zwei Sätze, kein Prospekt\n✓ Im Betreff die Referenz aus dem Empfang erwähnen, wenn erlaubt\n✓ CRM: Kanal, Ansprechpartner im Empfang und Datum notieren\n✓ Wiedervorlage in 4–5 Tagen — dann telefonisch nachfassen, jetzt mit Bezug auf die Mail"
+  },
+
+  travel: {
+    phase: "„Das macht unser Travel Management\"",
+    title: "Nicht korrigieren, sondern nachfragen",
+    text: "Kann gut sein — darf ich einmal genauer fragen? Bucht Ihre Reisestelle auch ganze Veranstaltungen, also Tagungsräume und Zimmerkontingente für Gruppen? Oder kümmert sie sich eher um einzelne Geschäftsreisen? Wenn es Letzteres ist, wäre für mich die Person interessanter, die die Veranstaltungen selbst plant und bucht.",
+    tip: "Die häufigste Fehlleitung. Viele Reisestellen wickeln nur Einzelreisen für Mitarbeiter ab und entscheiden nicht über Tagungshotels — dort läuft der Anruf ins Leere. Der Screen korrigiert den Empfang bewusst nicht, sondern stellt eine Frage und lässt ihn selbst zum Schluss kommen. Wenn die Reisestelle wirklich auch Veranstaltungen bucht, hast du die richtige Auskunft bekommen und gehst genau dorthin.",
+    options: [
+      { label: "Reisestelle bucht auch Veranstaltungen", next: "durchgestellt", icon: "✅", cls: "ja" },
+      { label: "Nur Einzelreisen — nennt eine andere Person", next: "durchgestellt", icon: "✅", cls: "ja" },
+      { label: "Bleibt bei der Reisestelle, stellt nicht durch", next: "ernte", icon: "❌", cls: "nein" }
+    ]
+  },
+
+  keine_namen: {
+    phase: "„Wir geben keine Namen heraus\"",
+    title: "Den Namen gar nicht brauchen",
+    text: "Das verstehe ich, damit haben Sie sicher oft zu tun. Dann anders gefragt: Können Sie mich einfach zu der Abteilung durchstellen, die Firmenveranstaltungen und Gruppenbuchungen bucht? Den Namen brauche ich gar nicht — ich frage direkt dort.",
+    tip: "Eine berechtigte Auskunftssperre, die nichts mit dir zu tun hat. Wichtig ist, sie nicht als Abwehr zu behandeln: zustimmen, Verständnis zeigen, und dann die Anforderung senken. Eine Durchstellung ohne Namensnennung verstößt gegen keine Regel, und der Empfang muss keine Auskunft geben — er verbindet nur.",
+    options: [
+      { label: "Stellt zur Abteilung durch", next: "durchgestellt", icon: "✅", cls: "ja" },
+      { label: "Blockt weiter ab", next: "blockt", icon: "🚧", cls: "nein" }
+    ]
+  },
+
+  nicht_mehr_da: {
+    phase: "„Die Person arbeitet nicht mehr hier\"",
+    title: "Das ist ein Geschenk, kein Hindernis",
+    text: "Oh, danke für den Hinweis — dann ist meine Recherche nicht mehr aktuell. Wer kümmert sich bei Ihnen inzwischen um Firmenveranstaltungen und Gruppenbuchungen?",
+    tip: "Der beste Moment im ganzen Gespräch. Der Empfang wird gerade nicht um eine Entscheidung gebeten, sondern um eine Auskunft — und die gibt er meist gern, weil er dich soeben vor einem Fehler bewahrt hat. Für den Anruf danach hast du außerdem einen echten Aufhänger: dass du von der Zentrale an diese Person verwiesen wurdest.",
+    options: [
+      { label: "Nennt die neue Person", next: "durchgestellt", icon: "✅", cls: "ja" },
+      { label: "Weiß nicht / gibt keine Namen heraus", next: "keine_namen", icon: "🔒", cls: "neutral" }
+    ]
+  },
+
+  nicht_erreichbar: {
+    phase: "Gerade nicht erreichbar",
+    title: "Alternativfrage statt offener Frage",
+    text: "Wann versuche ich es besser noch einmal — in einer Stunde oder eher später am Nachmittag?",
+    variants: [
+      { label: "Nach der Antwort", text: "Alles klar, vielen Dank — dann melde ich mich dann noch einmal." }
+    ],
+    tip: "„Wann soll ich anrufen?\" lädt zu „melden Sie sich nächste Woche\" ein. Zwei Zeitfenster zur Auswahl machen daraus eine Entscheidung zwischen zwei nahen Optionen. Die genannte Zeit ist außerdem eine Zusage, auf die du sich beim nächsten Anruf beziehen kannst.",
+    options: [
+      { label: "Zeit genannt", next: "rueckruf", icon: "✅", cls: "ja" },
+      { label: "Keine Auskunft", next: "ernte", icon: "❌", cls: "nein" }
+    ]
+  },
+
+  nicht_im_haus: {
+    phase: "Nicht im Haus",
+    title: "Alternativfrage auf Tagesebene",
+    text: "Wann ist er/sie wieder im Haus — morgen oder übermorgen?",
+    variants: [
+      { label: "Nach der Antwort", text: "Alles klar, vielen Dank — dann melde ich mich dann noch einmal." }
+    ],
+    tip: "Gleiches Prinzip wie bei „nicht erreichbar\", nur auf Tagesebene. Wenn du schon dabei bist: gleich nach der besten Uhrzeit fragen, dann brauchst du den Empfang beim nächsten Mal nicht noch einmal.",
+    options: [
+      { label: "Tag genannt", next: "rueckruf", icon: "✅", cls: "ja" },
+      { label: "Keine Auskunft", next: "ernte", icon: "❌", cls: "nein" }
+    ]
+  },
+
+  blockt: {
+    phase: "Letzter Versuch",
+    title: "Die Rolle des Empfangs offen anerkennen",
+    text: "Ich verstehe, dass Sie filtern müssen — das ist Ihr Job, und ich will Ihnen den nicht schwer machen. Es geht wirklich um zwei Minuten, danach entscheidet die zuständige Person selbst, ob es relevant ist. Wenn Sie mich nicht durchstellen möchten, ist das völlig okay — dann helfen Sie mir vielleicht auf einem anderen Weg weiter.",
+    tip: "Der frühere Satz an dieser Stelle war „Ich weiß nicht, inwieweit ich das Thema mit Ihnen besprechen darf\". Der unterstellt Vertraulichkeit, also eine bestehende Beziehung — und widerspricht damit dem, was du zwei Minuten vorher ehrlich gesagt hast. Er ist ersetzt durch offene Anerkennung der Filterrolle. Das ist nicht nur anständiger, sondern wirksamer: Das schnellste Ausschlusskriterium für einen Empfang ist jemand, der ihn wie ein Hindernis behandelt. Der letzte Halbsatz öffnet bewusst die Tür zur Auskunft, wenn die Durchstellung nicht kommt.",
+    options: [
+      { label: "Stellt doch durch", next: "durchgestellt", icon: "✅", cls: "ja" },
+      { label: "Bleibt beim Nein", next: "ernte", icon: "🌾", cls: "neutral" }
+    ]
+  },
+
+  ernte: {
+    phase: "Kein Durchkommen — trotzdem etwas mitnehmen",
+    title: "Nie mit leeren Händen auflegen",
+    text: "Kein Problem, ich dränge nicht. Dann hätte ich nur zwei kurze Fragen, damit ich Sie nicht immer wieder damit behelligen muss: Wann ist die zuständige Person üblicherweise am besten erreichbar — und gibt es eine Durchwahl oder eine direkte Mailadresse?",
+    tip: "Das war früher eine Sackgasse. Der Empfang weiß, wer zuständig ist, wann die Person am Platz ist und wie man sie direkt erreicht — und gibt das oft bereitwillig heraus, sobald er nicht mehr um eine Entscheidung gebeten wird. Die Begründung „damit ich Sie nicht immer wieder damit behelligen muss\" ist dabei ein echter Vorteil für ihn und keine Floskel. Selbst wenn nur die beste Uhrzeit herauskommt, ist der nächste Anruf deutlich besser vorbereitet.",
+    isEnd: true,
+    action: "✓ Alles notieren, was kommt: Name, Durchwahl, Mailadresse, beste Uhrzeit\n✓ Freundlich verabschieden — dieselbe Person ist beim nächsten Anruf noch da\n✓ CRM: Ergebnis und Namen der Person im Empfang notieren\n✓ Wiedervorlage zur genannten Uhrzeit, sonst in einer Woche\n✓ Kommt gar nichts: Zielperson über LinkedIn anschreiben"
+  },
+
+  rueckruf: {
+    phase: "Rückruf verabredet",
+    title: "Zusage festhalten und beim nächsten Anruf darauf beziehen",
+    text: "Alles klar, vielen Dank für Ihre Hilfe — dann melde ich mich dann noch einmal.",
+    isEnd: true,
+    action: "✓ Genannte Zeit sofort im Kalender eintragen, nicht „später mal\"\n✓ Namen der Person im Empfang notieren — beim nächsten Anruf darauf beziehen: „Ihre Kollegin hat mir gesagt, dass ich es jetzt am besten versuche\"\n✓ CRM: Datum, Uhrzeit und Ergebnis notieren\n✓ Pünktlich anrufen — die Zusage ist dein Türöffner"
+  },
+
+  durchgestellt: {
+    phase: "Ziel erreicht",
+    title: "Durchgestellt — sofort auf das Kaltakquise-Skript wechseln",
+    note: true,
+    text: "Ab hier gilt das Kaltakquise-Skript. Wenn du weitergeleitet wurdest, ist der Einstieg dort um einen Satz besser: „Ihre Kollegin am Empfang hat mich zu Ihnen durchgestellt.\"",
+    isEnd: true,
+    action: "✓ Kaltakquise-Gesprächsführer öffnen und dort mit dem Einstieg weitermachen\n✓ Bei Weiterleitung: Verweis aus dem Empfang im ersten Satz erwähnen\n✓ Namen der Person im Empfang notieren — hilft beim nächsten Kontakt mit dieser Firma\n✓ Falls du erst zur Abteilung und nicht zur Person durchgestellt wurdest: dort erneut nach der zuständigen Person fragen"
+  }
+};
+
+const totalDepth = 6;
+let history = [], current = 'start';
+
+function esc(t) { return t.replace(/\n/g, '<br>'); }
+
+function render() {
+  const s = steps[current];
+  const prog = document.getElementById('progress');
+  prog.innerHTML = '';
+  for (let i = 0; i < totalDepth; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < history.length ? ' done' : i === history.length ? ' active' : '');
+    prog.appendChild(d);
+  }
+  const bc = document.getElementById('breadcrumb');
+  if (history.length === 0) { bc.innerHTML = ''; }
+  else {
+    const parts = history.map(h => `<span>${steps[h.step] ? steps[h.step].phase : h.step}</span>`);
+    parts.push(`<span style="color:#1a1a18;font-weight:500">${s.phase}</span>`);
+    bc.innerHTML = parts.join(' <span>›</span> ');
+  }
+  let html = '';
+  if (history.length > 0) html += `<button class="back-btn" onclick="goBack()">← Zurück</button>`;
+  html += `<div class="card"><div class="phase">${s.phase}</div>`;
+  if (s.prefix) {
+    html += `<div class="prefix"><div class="prefix-head">${s.prefixLabel}</div>`;
+    s.prefix.forEach(pf => {
+      html += `<div class="prefix-row"><span class="prefix-when">${pf.when}</span><span class="prefix-say">„${pf.text}"</span></div>`;
+    });
+    html += `</div>`;
+  }
+  if (s.text) {
+    html += `<div class="text-box"><button class="copy-btn" onclick="copyText(this)">Kopieren</button>${esc(s.text)}</div>`;
+  }
+  if (s.fold) {
+    html += `<details class="fold"><summary>${s.foldLabel}</summary><div class="fold-body"><div class="text-box"><button class="copy-btn" onclick="copyText(this)">Kopieren</button>${esc(s.fold)}</div></div></details>`;
+  }
+  if (s.variants) {
+    s.variants.forEach(v => {
+      html += `<div class="box-label">${v.label}</div>`;
+      html += `<div class="text-box"><button class="copy-btn" onclick="copyText(this)">Kopieren</button>${esc(v.text)}</div>`;
+    });
+  }
+  if (s.isEnd) {
+    html += `</div><div class="end-box"><div class="end-label">Nächste Aktion</div><div class="action-box">${esc(s.action || '')}</div></div>`;
+    html += `<button class="restart-btn" onclick="restart()">↺ Neues Gespräch starten</button>`;
+  } else {
+    html += `<div class="actions">`;
+    s.options.forEach(opt => {
+      html += `<button class="btn ${opt.cls || ''}" onclick="go('${opt.next}')">${opt.icon ? opt.icon + ' ' : ''}${opt.label}</button>`;
+    });
+    html += `</div></div>`;
+  }
+  document.getElementById('content').innerHTML = html;
+}
+
+function copyText(btn) {
+  const box = btn.parentElement;
+  const text = box.innerText.replace('Kopieren', '').replace('✓ Kopiert', '').trim();
+  if (navigator.clipboard) navigator.clipboard.writeText(text);
+  btn.textContent = '✓ Kopiert';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Kopieren'; btn.classList.remove('copied'); }, 2000);
+}
+
+function go(next) { history.push({ step: current }); current = next; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function goBack() { if (history.length) { current = history.pop().step; render(); } }
+function restart() { history = []; current = 'start'; render(); }
+function jumpTo(step) {
+  if (!steps[step]) return;
+  history = []; current = step; render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+render();
+</script>
+
+<hr class="section-divider">
+<div class="section-title">Gesprächsstrang — Übersicht auf einen Blick</div>
+<div class="section-hint"><strong>Verloren im Gespräch?</strong> Such die Box mit dem Satz, den du gerade gesagt hast, und klick sie an — das Klick-Tool oben springt genau dorthin. Jede Box ist wörtlich derselbe Text wie im Tool, kein gekürzter Auszug.</div>
+<div class="overview">
+  <div class="legend">
+    <div class="li"><div class="ld" style="background:#AFA9EC"></div> Einstieg</div>
+    <div class="li"><div class="ld" style="background:#85B7EB"></div> Nachfrage / Abwehr</div>
+    <div class="li"><div class="ld" style="background:#5DCAA5"></div> Antwort zum Sprechen</div>
+    <div class="li"><div class="ld" style="background:#97C459"></div> Ziel erreicht</div>
+    <div class="li"><div class="ld" style="background:#B4B2A9"></div> Gesprächsende</div>
+    <div class="li" style="margin-left:auto;color:#534AB7;font-weight:600">↳ Box anklicken = Tool springt dorthin</div>
+  </div>
+  <div id="overview-body"></div>
+</div>
+
+<script>
+/* Der Strang wird aus demselben steps-Objekt erzeugt wie das Klick-Tool.
+   Handgebaut ist nur die Anordnung. */
+const layout = [
+  { t:'sect', text:'Vor dem Wählen entscheiden — das weißt du schon' },
+  { t:'node', step:'start', cls:'n-hint' },
+  { t:'sect', text:'Zwei Einstiege — je nachdem, ob du einen Namen hast' },
+  { t:'twoup', steps:[
+    { step:'einstieg_name', cls:'n-start', label:'Einstieg A — mit recherchiertem Namen' },
+    { step:'einstieg_ohne_name', cls:'n-start', label:'Einstieg B — ohne Namen', badge:'neu in v3' }
+  ]},
+  { t:'merge', text:'ab hier reagierst du auf das, was zurückkommt — die Fälle gelten für beide Einstiege' },
+
+  { t:'sect', text:'Der Normalfall' },
+  { t:'node', step:'durchgestellt', cls:'n-goal' },
+
+  { t:'sect', text:'„Worum geht es genau?\" — zwei Fassungen, je nach Einstieg' },
+  { t:'node', step:'worum', cls:'n-q' },
+  { t:'fork', of:'worum', cols:[
+    { opt:0 }, { opt:1 }, { opt:2 }, { opt:3 }, { opt:4 }
+  ]},
+  { t:'divider' },
+  { t:'node', step:'worum_ohne_name', cls:'n-q', badge:'neu in v3' },
+  { t:'chain', of:'worum_ohne_name', opt:0, text:'Ziel erreicht' },
+  { t:'chain', of:'worum_ohne_name', opt:1, text:'Travel-Management-Weiche' },
+  { t:'chain', of:'worum_ohne_name', opt:2, text:'nach der Abteilung fragen' },
+  { t:'chain', of:'worum_ohne_name', opt:3, text:'Mail-Abwehr' },
+  { t:'chain', of:'worum_ohne_name', opt:4, text:'letzter Versuch' },
+
+  { t:'sect', text:'Der Beziehungstest — nur auf dem Weg mit Namen' },
+  { t:'node', step:'kontakt_test', cls:'n-q', badge:'neu in v3' },
+  { t:'chain', of:'kontakt_test', opt:0, text:'Ziel erreicht' },
+  { t:'chain', of:'kontakt_test', opt:1, text:'weiter zur Mail-Abwehr' },
+  { t:'chain', of:'kontakt_test', opt:2, text:'letzter Versuch' },
+
+  { t:'sect', text:'Abwehr-Sätze' },
+  { t:'node', step:'email', cls:'n-q', badge:'neu in v3' },
+  { t:'fork', of:'email', cols:[
+    { opt:0, items:[ { t:'end', step:'rueckruf' } ] },
+    { opt:1, items:[ { t:'end', step:'email_adresse' } ] }
+  ]},
+  { t:'divider' },
+  { t:'node', step:'travel', cls:'n-q', badge:'neu in v3' },
+  { t:'chain', of:'travel', opt:0, text:'dorthin durchstellen lassen' },
+  { t:'chain', of:'travel', opt:1, text:'zur genannten Person' },
+  { t:'chain', of:'travel', opt:2, text:'Informationen mitnehmen ↓' },
+  { t:'divider' },
+  { t:'node', step:'keine_namen', cls:'n-q', badge:'neu in v3' },
+  { t:'chain', of:'keine_namen', opt:0, text:'Ziel erreicht' },
+  { t:'chain', of:'keine_namen', opt:1, text:'letzter Versuch ↓' },
+  { t:'divider' },
+  { t:'node', step:'nicht_mehr_da', cls:'n-q', badge:'neu in v3' },
+  { t:'chain', of:'nicht_mehr_da', opt:0, text:'Ziel erreicht' },
+  { t:'chain', of:'nicht_mehr_da', opt:1, text:'nach der Abteilung fragen' },
+
+  { t:'sect', text:'Nicht da — Rückruf verabreden' },
+  { t:'twoup', steps:[
+    { step:'nicht_erreichbar', cls:'n-q', label:'Gerade nicht erreichbar' },
+    { step:'nicht_im_haus', cls:'n-q', label:'Nicht im Haus' }
+  ]},
+  { t:'hint', text:'Zeit genannt → Rückruf verabredet · keine Auskunft → Informationen mitnehmen' },
+
+  { t:'sect', text:'Wenn nichts davon greift' },
+  { t:'node', step:'blockt', cls:'n-say' },
+  { t:'fork', of:'blockt', cols:[
+    { opt:0, items:[ { t:'hint', text:'→ Ziel erreicht' } ] },
+    { opt:1, items:[ { t:'end', step:'ernte' } ] }
+  ]},
+
+  { t:'sect', text:'Rückruf-Abschluss' },
+  { t:'node', step:'rueckruf', cls:'n-say' },
+
+];
+
+function ovEsc(t) { return t.replace(/\n/g, '<br>'); }
+function tagCls(cls) { return cls === 'ja' ? 'tag-ja' : cls === 'nein' ? 'tag-nein' : 'tag-info'; }
+
+function ovNode(step, cls, badge) {
+  const s = steps[step];
+  const b = badge ? ` <span class="tag tag-neu">${badge}</span>` : '';
+  let body = '';
+  if (s.prefix) {
+    body += `<div class="ov-label">${s.prefixLabel}</div>`;
+    s.prefix.forEach(pf => { body += `<div><strong>${pf.when}:</strong> „${pf.text}"</div>`; });
+    body += `<div style="height:5px"></div>`;
+  }
+  body += s.text ? (s.note ? ovEsc(s.text) : `„${ovEsc(s.text)}"`) : (s.variants || s.prefix ? '' : `<em>${s.title}</em>`);
+  if (s.fold) body += `<div class="ov-label" style="margin-top:7px">${s.foldLabel}</div>„${ovEsc(s.fold)}"`;
+  if (s.variants) s.variants.forEach((v, i) => {
+    body += `<div class="ov-label" style="margin-top:${i || s.text ? 7 : 0}px">${v.label}</div>„${ovEsc(v.text)}"`;
+  });
+  return `<div class="ov-node ${cls} ov-click" data-step="${step}" title="Anklicken — das Tool oben springt an diese Stelle"><div class="ov-label">${s.phase}${b}</div>${body}</div>`;
+}
+
+function ovEnd(step) {
+  const s = steps[step];
+  let html = '';
+  if (s.text) html += ovNode(step, 'n-say');
+  html += `<div class="ov-node n-end ov-click" data-step="${step}" title="Anklicken — das Tool oben springt an diese Stelle"><div class="ov-label">Nächste Aktion — ${s.phase}</div>${ovEsc(s.action || '')}</div>`;
+  return html;
+}
+
+function ovItems(items) { return (items || []).map(ovRender).join(''); }
+
+function ovRender(it) {
+  if (it.t === 'node')    return ovNode(it.step, it.cls, it.badge);
+  if (it.t === 'end')     return ovEnd(it.step);
+  if (it.t === 'hint')    return `<div class="ov-node n-hint">${it.text}</div>`;
+  if (it.t === 'divider') return `<div class="ov-divider"></div>`;
+  if (it.t === 'sect')    return `<div class="sect-head">${it.text}</div>`;
+  if (it.t === 'merge')   return `<div class="merge-bar"><div class="merge-line"></div>${it.text}<div class="merge-line"></div></div><div class="v"><div class="vline"></div></div>`;
+  if (it.t === 'twoup') {
+    return `<div class="twoup">` + it.steps.map(c =>
+      `<div>${ovNode(c.step, c.cls, c.badge)}</div>`).join('') + `</div>`;
+  }
+  if (it.t === 'chain') {
+    const o = steps[it.of].options[it.opt];
+    return `<div class="chain"><span class="tag ${tagCls(o.cls)}">${o.icon} ${o.label}</span><span class="chain-txt">→ ${it.text}</span></div>`;
+  }
+  if (it.t === 'fork') {
+    const parent = steps[it.of];
+    const n = it.cols.length;
+    let html = `<div class="fork"><div class="fork-stem"><div class="vline"></div></div><div class="fork-bar n${n}"></div><div class="fork-cols">`;
+    it.cols.forEach(c => {
+      const o = parent.options[c.opt];
+      const inner = (c.items && c.items.length)
+        ? ovItems(c.items)
+        : `<div class="ov-node n-hint">→ „${steps[o.next].phase}"</div>`;
+      html += `<div class="fork-col"><div class="vline"></div><span class="tag ${tagCls(o.cls)}">${o.icon} ${o.label}</span><div class="vline"></div><div class="fork-col-inner">${inner}</div></div>`;
+    });
+    return html + `</div></div>`;
+  }
+  return '';
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  const body = document.getElementById('overview-body');
+  body.innerHTML = layout.map(it => {
+    const h = ovRender(it);
+    return (it.t === 'node') ? `<div class="center-box">${h}</div>` : h;
+  }).join('');
+  body.addEventListener('click', function (e) {
+    const el = e.target.closest('.ov-click');
+    if (!el) return;
+    jumpTo(el.getAttribute('data-step'));
+  });
+
+  const whyOrder = ['start','einstieg_name','einstieg_ohne_name','worum','worum_ohne_name','kontakt_test','email','travel','keine_namen','nicht_mehr_da','nicht_erreichbar','nicht_im_haus','blockt','ernte'];
+  document.getElementById('why-body').innerHTML = whyOrder.filter(k => steps[k] && steps[k].tip).map(k => {
+    const st = steps[k];
+    return `<div class="why-item"><div class="why-phase">${st.phase}</div><div class="why-title">${st.title}</div><div class="why-text">${st.tip}</div></div>`;
+  }).join('');
+});
+</script>
+
+<hr class="section-divider">
+<div class="section-title">Gedankenstütze — wieso, weshalb, warum</div>
+<div class="section-hint">Steht bewusst hier unten und nicht im Skript: beim Telefonieren willst du den Satz und die Buttons sehen, nichts sonst. Diese Erklärungen liest man einmal vorher — oder danach, wenn ein Gespräch komisch gelaufen ist.</div>
+<div class="why">
+  <div class="why-intro">
+    <strong>Die vier Leitgedanken</strong>
+    <ul>
+      <li><strong>Der Empfang ist ein Filter, kein Hindernis.</strong> Seine Aufgabe ist es, Anrufe wie deinen zu sortieren — und das schnellste Ausschlusskriterium ist jemand, der ihn wie ein Hindernis behandelt. Respekt ist hier nicht nur die anständigere, sondern die wirksamere Haltung.</li>
+      <li><strong>Der schnellste Weg durch einen Filter ist, filterbar zu sein.</strong> Vagheit wirkt nicht diskret, sondern wie jemand, der etwas verbirgt. Klar sagen, wer du bist und was du willst.</li>
+      <li><strong>Nie lügen und nie Vertrautheit vorspielen.</strong> Wer eine Durchwahl hätte, würde nicht in der Zentrale anrufen — das weiß der Empfang selbst. Das offen auszusprechen kostet nichts und schafft Vertrauen.</li>
+      <li><strong>Zwei Ziele, nicht eins.</strong> Erstens durchgestellt werden. Und wenn das nicht klappt: mit einer Information rausgehen — Name, Durchwahl, beste Uhrzeit, Mailadresse. Nie mit leeren Händen auflegen.</li>
+    </ul>
+  </div>
+  <div id="why-body"></div>
+</div>
+
+<hr class="section-divider">
+<div class="section-title">Was ist neu in v3</div>
+<div class="changelog">
+  <h3>Änderungen gegenüber v2.2 — entstanden aus echten Anrufen</h3>
+  <ul>
+    <li><strong>Die erste Frage ist die, deren Antwort du vor dem Wählen kennst:</strong> Habe ich einen Namen recherchiert oder nicht? Danach richtet sich der Einstieg. Sprachmenüs und KI-Bots sind bewusst kein Thema im Skript — ein Sprachmenü führt trotzdem zur richtigen Zentrale, und bei einem Bot, der ein Ticket eröffnen will, wird einfach aufgelegt.</li>
+    <li><strong>Geltungsbereich oben klargestellt.</strong> Das Skript gilt nur bei Anruf über die Zentrale. Mit Durchwahl landet man direkt bei der Zielperson und arbeitet mit dem Kaltakquise-Skript.</li>
+    <li><strong>Der Beziehungstest hat jetzt eine Antwort.</strong> „Waren Sie schon in Kontakt?" und „Haben Sie die Durchwahl?" kamen in echten Anrufen häufig, oft als Doppelfrage — im alten Skript gab es dazu nichts, und improvisiertes Zögern ist genau das Signal, an dem der Empfang blockt.</li>
+    <li><strong>Zweiter Einstieg für den Fall ohne Namen</strong>, mit Entscheider-Filter („und entscheidet am Ende auch, wo gebucht wird"). Der bewährte Einstieg mit Namen bleibt unverändert, weil er funktioniert.</li>
+    <li><strong>„Worum geht es?" ist konkret geworden.</strong> „Optimierungspotenzial" und „zeitkritisch" sind raus — das erste sagt nichts, das zweite ist bei einem Kaltanruf nicht wahr und widersprach dem eigenen Grundsatz „nie lügen".</li>
+    <li><strong>Die E-Mail-Abwimmlung ist ein eigener Pfad</strong> statt einer Randnotiz im Spickzettel — mit Zustimmung statt Widerspruch, und mit einem Weg zur richtigen Adresse statt info@.</li>
+    <li><strong>Travel-Management-Weiche neu.</strong> Verhindert die häufigste Fehlleitung: Reisestellen, die nur Einzelreisen für Mitarbeiter abwickeln und nicht über Tagungshotels entscheiden.</li>
+    <li><strong>„Wir geben keine Namen heraus" und „Die Person arbeitet nicht mehr hier"</strong> sind neu — letzteres ist der beste Moment im Gespräch, weil der Empfang nur eine Auskunft geben muss.</li>
+    <li><strong>„Worum geht es?" gibt es in zwei Fassungen.</strong> Die Antwort nannte bisher den Namen der Zielperson — auf dem Weg ohne Namen hat man den aber noch nicht. Die zweite Fassung sagt denselben Inhalt und endet stattdessen mit „Wer wäre das — und können Sie mich gleich durchstellen?", erfragt den Namen also, statt ihn zu verwenden. Aus demselben Grund sind die Sätze im letzten Versuch, in der Mail-Abwehr und im Ernte-Screen namensneutral formuliert, weil beide Wege dort zusammenlaufen.</li>
+    <li><strong>Der Beziehungstest ist auf drei Anfänge und einen gemeinsamen Rest verdichtet.</strong> „Weder noch" passt nur, wenn Kontakt UND Durchwahl in einem Zug gefragt wurden — wer auf eine einzelne Frage zwei Antworten gibt, klingt nach Rechtfertigung. Weil sich die Fassungen aber nur in den ersten drei Wörtern unterscheiden, stehen oben die drei kurzen Anfänge und darunter der immer gleiche zweite Teil. Der Fall „es gab schon schriftlichen Kontakt" liegt in einem zugeklappten Kasten, weil er selten ist und der Screen sonst überladen wäre.</li>
+    <li><strong>Aus der Sackgasse wird ein Ernte-Screen.</strong> Früher endete das Gespräch bei „nicht durchstellbar". Jetzt wird nach bester Uhrzeit, Durchwahl und Mailadresse gefragt — Fragen, die der Empfang beantworten darf, sobald er nicht mehr um eine Entscheidung gebeten wird.</li>
+    <li><strong>Zwei Manipulationstipps gestrichen.</strong> „Vertraut klingen — als ob man sich kennt" und „Verantwortung verschieben" standen im Widerspruch zum Grundsatz „nie lügen" und zur Haltung gegenüber dem Empfang. Ersetzt durch offene Anerkennung der Filterrolle.</li>
+    <li><strong>Aufbau wie beim Kaltakquise-Tool:</strong> Skript nur mit Sprechtext und Buttons, darunter der klickbare Gesprächsstrang, darunter die Gedankenstütze.</li>
+  </ul>
+</div>
+</body>
+</html>
