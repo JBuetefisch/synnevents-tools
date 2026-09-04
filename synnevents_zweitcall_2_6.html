@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synnevents – Qualifizierungs-Call (Call 2) v2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; min-height: 100vh; padding: 2rem 1rem; }
+.tool-wrap { display: flex; justify-content: center; }
+.container { width: 100%; max-width: 640px; }
+.header { margin-bottom: 1rem; }
+.header-title { font-size: 13px; font-weight: 600; color: #534AB7; text-transform: uppercase; letter-spacing: 0.07em; }
+.header-sub { font-size: 22px; font-weight: 500; color: #1a1a18; margin-top: 4px; }
+.header-ver { display: inline-block; font-size: 11px; font-weight: 700; color: #0F6E56; background: #E1F5EE; border: 1px solid #5DCAA5; border-radius: 4px; padding: 1px 7px; margin-left: 6px; vertical-align: 3px; }
+.scope { font-size: 12.5px; color: #6b6880; background: #EEEDFE; border: 1px solid #AFA9EC; border-radius: 8px; padding: 0.6rem 0.9rem; margin-bottom: 1rem; line-height: 1.6; }
+.scorebar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 1rem; padding: 8px 12px; background: #fff; border: 1px solid #e8e6e0; border-radius: 8px; }
+.scorebar-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #999; margin-right: 4px; }
+.chip { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 5px; border: 1px solid #ddd; background: #f5f4f0; color: #aaa; }
+.chip.pass { background: #EAF3DE; border-color: #97C459; color: #173404; }
+.chip.fail { background: #FCEBEB; border-color: #F09595; color: #501313; }
+.chip-total { margin-left: auto; font-size: 11px; font-weight: 700; color: #534AB7; background: #EEEDFE; border-color: #AFA9EC; }
+.progress { display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.2s; }
+.dot.active { background: #534AB7; }
+.dot.done { background: #5DCAA5; }
+.breadcrumb { font-size: 12px; color: #999; margin-bottom: 1rem; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; min-height: 18px; }
+.breadcrumb span { color: #888; }
+.card { background: #fff; border: 1px solid #e8e6e0; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+.phase { font-size: 11px; font-weight: 600; color: #534AB7; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+.text-box { font-size: 15px; color: #1a1a18; line-height: 1.65; background: #f5f4f0; border-radius: 8px; padding: 0.9rem 2.6rem 0.9rem 1rem; border-left: 3px solid #534AB7; margin-bottom: 0.5rem; position: relative; }
+.text-box.give { border-left-color: #5DCAA5; background: #EAF7F2; }
+.text-box.modell { border-left-color: #EF9F27; background: #FDF7EC; }
+.give-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #0F6E56; margin-bottom: 6px; }
+.prep { background: #fff; border: 1px solid #e8e6e0; border-radius: 8px; padding: 0.7rem 0.9rem; }
+.prep-head { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #534AB7; margin-bottom: 6px; }
+.prep ul { margin: 0; padding-left: 1.1rem; font-size: 14px; line-height: 1.7; }
+.copy-btn { position: absolute; top: 8px; right: 8px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 3px 8px; font-size: 11px; color: #888; cursor: pointer; font-family: inherit; }
+.copy-btn:hover { background: #eee; }
+.copy-btn.copied { color: #0F6E56; border-color: #5DCAA5; }
+.fold { margin-top: 0.7rem; border: 1px dashed #ddd; border-radius: 8px; background: #f9f8f5; }
+.fold > summary { cursor: pointer; padding: 0.5rem 0.8rem; font-size: 12.5px; color: #888; list-style: none; }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary::before { content: '▸ '; }
+.fold[open] > summary::before { content: '▾ '; }
+.fold-body { padding: 0 0.8rem 0.7rem; }
+.prefix { background: #fff; border: 1px solid #e8e6e0; border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 0.6rem; }
+.prefix-head { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #534AB7; margin-bottom: 6px; }
+.prefix-row { display: flex; gap: 8px; align-items: baseline; font-size: 14px; line-height: 1.6; padding: 2px 0; }
+.prefix-when { flex: 0 0 10rem; font-size: 11.5px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.03em; }
+.prefix-say { color: #1a1a18; }
+.actions { display: flex; flex-direction: column; gap: 8px; margin-top: 1.25rem; }
+.btn { padding: 11px 16px; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #1a1a18; font-size: 14px; cursor: pointer; text-align: left; transition: background 0.15s; display: flex; align-items: flex-start; gap: 8px; font-family: inherit; line-height: 1.45; }
+.btn:hover { background: #f5f4f0; }
+.btn.ja { border-color: #0F6E56; color: #0F6E56; }
+.btn.ja:hover { background: #E1F5EE; }
+.btn.nein { border-color: #A32D2D; color: #A32D2D; }
+.btn.nein:hover { background: #FCEBEB; }
+.btn.neutral { border-color: #534AB7; color: #534AB7; }
+.btn.neutral:hover { background: #EEEDFE; }
+.pt { margin-left: auto; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; }
+.pt-1 { background: #EAF3DE; color: #173404; border: 1px solid #97C459; }
+.pt-0 { background: #FCEBEB; color: #501313; border: 1px solid #F09595; }
+.end-box { background: #f5f4f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+.end-label { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+.end-label::before { content: '✓ '; color: #0F6E56; }
+.action-box { background: #fff; border: 1px solid #e8e6e0; border-radius: 8px; padding: 0.75rem 1rem; font-size: 14px; color: #1a1a18; line-height: 1.6; }
+.verdict { border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+.verdict-a { background: #EAF3DE; border: 1.5px solid #97C459; }
+.verdict-b { background: #FAEEDA; border: 1.5px solid #EF9F27; }
+.verdict-c { background: #F1EFE8; border: 1.5px solid #B4B2A9; }
+.verdict-head { font-size: 20px; font-weight: 600; color: #1a1a18; margin-bottom: 4px; }
+.verdict-sub { font-size: 13.5px; color: #444; line-height: 1.6; }
+.ko { font-size: 13px; color: #7a4a04; background: #fff; border: 1px solid #EF9F27; border-radius: 8px; padding: 0.6rem 0.8rem; margin-top: 0.7rem; line-height: 1.55; }
+.crm-box { position: relative; background: #1a1a18; color: #f5f4f0; border-radius: 8px; padding: 0.9rem 2.6rem 0.9rem 1rem; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px; line-height: 1.65; white-space: pre-wrap; }
+.crm-box .copy-btn { background: #333; border-color: #555; color: #ccc; }
+.restart-btn { padding: 8px 14px; border-radius: 8px; border: 1px solid #ddd; background: transparent; color: #888; font-size: 13px; cursor: pointer; font-family: inherit; margin-top: 0.5rem; }
+.restart-btn:hover { background: #f5f4f0; }
+.back-btn { background: transparent; border: none; color: #bbb; font-size: 13px; cursor: pointer; padding: 4px 0; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 4px; font-family: inherit; }
+.back-btn:hover { color: #888; }
+.panel { background: #fff; border: 1px solid #e8e6e0; border-radius: 10px; margin-bottom: 1rem; }
+.panel > summary { cursor: pointer; padding: 0.7rem 1rem; font-size: 13px; font-weight: 600; color: #534AB7; list-style: none; }
+.panel > summary::-webkit-details-marker { display: none; }
+.panel > summary::before { content: '⚡ '; }
+.panel-body { padding: 0 1rem 1rem; }
+.ew { border-top: 1px solid #eee; padding-top: 0.7rem; margin-top: 0.7rem; }
+.ew:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+.ew-q { font-size: 13px; font-weight: 600; color: #1a1a18; margin-bottom: 4px; }
+.ew-a { font-size: 13.5px; color: #333; line-height: 1.6; background: #f5f4f0; border-left: 3px solid #5DCAA5; border-radius: 6px; padding: 0.6rem 0.8rem; }
+.ew-note { font-size: 12px; color: #888; font-style: italic; margin-top: 4px; }
+
+.section-divider { max-width: 960px; margin: 3rem auto 2rem; border: none; border-top: 2px solid #e0ddd6; }
+.section-title { max-width: 960px; margin: 0 auto 0.4rem; font-size: 13px; font-weight: 600; color: #534AB7; text-transform: uppercase; letter-spacing: 0.07em; }
+.section-hint { max-width: 960px; margin: 0 auto 1.5rem; font-size: 12.5px; color: #888; }
+.overview { max-width: 960px; margin: 0 auto 4rem; font-size: 12px; color: #1a1a18; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; padding: 8px 14px; background: #fff; border: 1px solid #e8e6e0; border-radius: 8px; font-size: 11px; color: #666; }
+.li { display: flex; align-items: center; gap: 6px; }
+.ld { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.ov-node { border-radius: 7px; padding: 9px 12px; font-size: 11.5px; line-height: 1.55; width: 100%; }
+.ov-node + .ov-node { margin-top: 6px; }
+.ov-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.6; margin-bottom: 3px; font-style: normal; }
+.n-start { background: #EEEDFE; border: 1.5px solid #AFA9EC; color: #26215C; }
+.n-q     { background: #E6F1FB; border: 1.5px solid #85B7EB; color: #042C53; }
+.n-give  { background: #E1F5EE; border: 1.5px solid #5DCAA5; color: #04342C; }
+.n-act   { background: #FAEEDA; border: 1.5px solid #EF9F27; color: #412402; }
+.n-end   { background: #F1EFE8; border: 1.5px solid #B4B2A9; color: #2C2C2A; }
+.n-goal  { background: #EAF3DE; border: 2.5px solid #97C459; color: #173404; }
+.n-hint  { background: transparent; border: 1px dashed #C0BDCC; color: #6b6880; font-style: italic; text-align: center; font-size: 11px; }
+.tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 4px; white-space: nowrap; }
+.tag-ja   { background: #EAF3DE; color: #173404; border: 1px solid #97C459; }
+.tag-nein { background: #FCEBEB; color: #501313; border: 1px solid #F09595; }
+.tag-info { background: #FAEEDA; color: #412402; border: 1px solid #EF9F27; }
+.tag-neu  { background: #EEEDFE; color: #26215C; border: 1px solid #AFA9EC; }
+.merge-bar { display: flex; align-items: center; gap: 8px; margin: 12px 0 6px; color: #999; font-size: 11px; }
+.merge-line { flex: 1; height: 1px; background: #ccc; }
+.v { display: flex; justify-content: center; }
+.vline { width: 2px; background: #C0BDCC; min-height: 12px; }
+.ov-divider { height: 1px; background: #E0DED8; margin: 16px 0; }
+.center-box { max-width: 660px; margin: 0 auto; }
+.chain { display: flex; align-items: baseline; gap: 6px; font-size: 10.5px; color: #777; padding-left: 2px; flex-wrap: wrap; }
+.chain-txt { font-style: italic; }
+.threeup { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.twoup { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ov-click { cursor: pointer; transition: box-shadow 0.12s, transform 0.12s; }
+.ov-click:hover { box-shadow: 0 0 0 3px rgba(83,74,183,0.22); transform: translateY(-1px); }
+.ov-click:active { transform: none; }
+.sect-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #534AB7; margin: 18px 0 8px; }
+
+.why { max-width: 960px; margin: 0 auto 4rem; }
+.why-intro { background: #EEEDFE; border: 1px solid #AFA9EC; border-radius: 8px; padding: 0.9rem 1.1rem; font-size: 12.5px; line-height: 1.75; color: #26215C; margin-bottom: 1rem; }
+.why-intro ul { margin: 0.4rem 0 0; padding-left: 1.1rem; }
+.why-item { background: #fff; border: 1px solid #e8e6e0; border-radius: 8px; padding: 0.8rem 1.1rem; margin-bottom: 0.6rem; }
+.why-phase { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #534AB7; margin-bottom: 2px; }
+.why-title { font-size: 13.5px; font-weight: 600; color: #1a1a18; margin-bottom: 4px; }
+.why-text { font-size: 12.5px; color: #555; line-height: 1.7; }
+.changelog { max-width: 960px; margin: 0 auto 2rem; background: #fff; border: 1px solid #e8e6e0; border-radius: 8px; padding: 1rem 1.25rem; font-size: 12.5px; line-height: 1.7; color: #333; }
+.changelog h3 { font-size: 11px; font-weight: 700; color: #534AB7; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+.changelog ul { margin: 0; padding-left: 1.1rem; }
+@media (max-width: 720px) { .threeup, .twoup { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+<div class="container">
+  <div class="header">
+    <div class="header-title">Synnevents</div>
+    <div class="header-sub">Qualifizierungs-Call<span class="header-ver">Call 2 · v2</span></div>
+  </div>
+  <div class="scope">15 Minuten, Telefon oder Teams, mit einem Kontakt aus dem Kaltakquise-Call. <strong>Für den Kunden ist das Onboarding, intern der Goldstandard-Check.</strong> Kein Closing, kein Druck — qualifiziert wird unsere Vertriebsenergie, nicht der Kunde.</div>
+  <div class="scorebar" id="scorebar"></div>
+  <div class="progress" id="progress"></div>
+  <div id="breadcrumb" class="breadcrumb"></div>
+  <div id="content"></div>
+  <details class="panel" id="einwand-panel">
+    <summary>Einwand kommt? Bausteine aufklappen</summary>
+    <div class="panel-body" id="einwand-body"></div>
+  </details>
+</div>
+</div>
+
+<script>
+const LIEFERTEMPO = "3 bis 5 Werktagen";
+
+const steps = {
+
+  start: {
+    phase: "Vorbereitung",
+    title: "Woher kam der Kontakt — davon hängt nur der Einstieg ab",
+    prepHead: "Kurz vor dem Anruf",
+    prep: [
+      "CRM-Eintrag offen, Name und Firma parat",
+      "Falls vorher schon etwas Prägnantes gefallen oder geschrieben wurde: einen Satz davon merken",
+      "Zwei Zeitfenster frei halten, falls du für die Testanfrage nachfassen musst"
+    ],
+    tip: "Der vereinbarte Termin ist der Beweis, dass Interesse da ist — mehr Vorwissen brauchst du nicht. Unterschiedlich ist nur der Einstieg: Nach einem Kaltakquise-Call hast du das Gespräch begonnen, bei einem LinkedIn- oder Mailkontakt hat die Person sich gemeldet. Das ist eine völlig andere Ausgangslage und verdient einen anderen ersten Satz. Alles ab Frageblock 1 ist identisch. Branche und Größe nimmst du mit, wenn du ohnehin auf der Website warst — erfragen musst du sie nicht.",
+    options: [
+      { label: "Termin kam aus einem Kaltakquise-Call", next: "einstieg", icon: "📞", cls: "neutral" },
+      { label: "Kontakt kam über LinkedIn oder Mail — die Person hat sich gemeldet", next: "einstieg_inbound", icon: "💼", cls: "neutral" }
+    ]
+  },
+
+  einstieg: {
+    phase: "Einstieg — Mini-Pitch",
+    title: "Erst geben, dann fragen — und mit der leichtesten Frage anfangen",
+    text: "Frau/Herr ___, schön, dass es klappt. Kurz zu uns, damit Sie wissen, mit wem Sie sprechen: Wir suchen und vergleichen Hotels, Locations und alle Dienstleister rund um Ihr Event — deutschlandweit und auch über die Grenzen hinaus, für Seminare, Tagungen, Kundenevents. Sie sagen uns, was Sie brauchen, und bekommen von uns eine fertige Entscheidungsvorlage: passende Häuser im direkten Vergleich, mit Nettopreisen, Bildern und unserer Einschätzung — statt selbst tagelang zu telefonieren und Angeboten hinterherzulaufen. Und das kostet Sie nichts, wir werden von den Anbietern bezahlt.\n\nDamit ich Ihnen beim ersten Mal gleich das Richtige liefere, würde ich in 15 Minuten Ihre Veranstaltungslandschaft verstehen — und am Ende zeige ich Ihnen, wie Sie uns völlig risikofrei testen können. Einverstanden?\n\nDann fange ich ganz vorne an: Wofür sind Sie bei [Firma] zuständig — und organisieren Sie die Veranstaltungen für das ganze Unternehmen oder für Ihren Bereich?",
+    tip: "Der Pitch ist der Mehrwert, der die erste Frage bezahlt — deshalb hängt die Rollenfrage direkt hier dran und braucht keinen eigenen Screen. Sie ist bewusst die leichteste Frage des Gesprächs: Jeder erzählt gern, wofür er zuständig ist, und du bekommst nebenbei den ersten Abschnitt der CRM-Vorlage gefüllt sowie einen Hinweis darauf, wie es später bei G3 aussieht. Die zweite Hälfte der Frage ist keine Höflichkeit, sondern die erste Potenzialabschätzung: Wer für das ganze Unternehmen organisiert, hat ein Vielfaches des Volumens von jemandem, der nur seinen Bereich abdeckt. Bewusst nicht nach Standorten gefragt — eine Person sitzt in der Regel an einem Standort, und die eigentlich interessante Frage nach dem Umfang der Zuständigkeit setzt voraus, dass du die Firmenstruktur vorher recherchiert hast. Genau das wollen wir nicht. Es gibt hier nur einen Weiter-Button: Wer sich einen Termin hat legen lassen, will nicht abkürzen.",
+    options: [
+      { label: "Weiter zu den Veranstaltungen", next: "g1", icon: "→", cls: "neutral" }
+    ]
+  },
+
+
+  /* ---------------- G1 Frequenz ---------------- */
+  einstieg_inbound: {
+    phase: "Einstieg — Kontakt kam über LinkedIn oder Mail",
+    title: "Erst nach dem Anlass fragen, dann erst erzählen, wer wir sind",
+    text: "Frau/Herr ___, schön, dass wir jetzt sprechen. Sie hatten mir geschrieben, dass Sie mehr über unseren Service erfahren möchten — erzählen Sie doch kurz, was der Anlass war. Steht bei Ihnen gerade etwas an, oder wollten Sie sich das grundsätzlich mal anschauen?\n\n… Antwort abwarten und mitschreiben …\n\nDanke, das hilft mir schon weiter. Dann kurz zu uns, damit Sie wissen, mit wem Sie sprechen: Wir suchen und vergleichen Hotels, Locations und alle Dienstleister rund um Ihr Event — deutschlandweit und auch über die Grenzen hinaus. Sie sagen uns, was Sie brauchen, und bekommen von uns eine fertige Entscheidungsvorlage: passende Häuser im direkten Vergleich, mit Nettopreisen, Bildern und unserer Einschätzung. Kosten entstehen Ihnen keine, wir werden von den Anbietern bezahlt.\n\nDamit ich Ihnen beim ersten Mal gleich das Richtige liefere, würde ich in 15 Minuten Ihre Veranstaltungslandschaft verstehen — und am Ende zeige ich Ihnen, wie Sie uns völlig risikofrei testen können. Wofür sind Sie bei [Firma] zuständig — und organisieren Sie die Veranstaltungen für das ganze Unternehmen oder für Ihren Bereich?",
+    tip: "Die Reihenfolge ist hier bewusst umgedreht. Bei einem Kaltakquise-Termin kommt der Pitch zuerst, weil du erklären musst, warum du überhaupt anrufst. Wer sich selbst gemeldet hat, weiß das schon — und ihn dann mit einer Selbstbeschreibung zu begrüßen, wirkt, als hätte man seine Nachricht nicht gelesen. Deshalb zuerst die Frage nach dem Anlass. Sie ist kein Abfragen, sondern echte Neugier, und sie liefert dir mit dem ersten Satz das Wichtigste: ob gerade etwas ansteht oder ob es grundsätzliches Interesse ist. Das entscheidet, wie verbindlich du am Ende abschließen kannst. Der Pitch danach darf kürzer ausfallen als beim Kaltakquise-Weg — die Person kennt die Grundidee aus deiner Nachricht. Und wenn im Gespräch ein Ärgernis genannt wird: mitschreiben, das ist später dein Aufhänger.",
+    options: [
+      { label: "Weiter zu den Veranstaltungen", next: "g1", icon: "→", cls: "neutral" }
+    ]
+  },
+
+  g1: {
+    phase: "G1 — Frequenz",
+    title: "Frageblock 1: welche Veranstaltungen, wie oft, wann",
+    prefixLabel: "Anfang wählen — je nachdem, woher der Kontakt kam",
+    prefix: [
+      { when: "Nach Kaltakquise-Call", text: "Sie hatten am Telefon erzählt, dass Sie Veranstaltungen außer Haus durchführen." },
+      { when: "Nach LinkedIn oder Mail", text: "Dann schauen wir uns Ihre Veranstaltungen einmal an." }
+    ],
+    text: "Was steht bei Ihnen dieses Jahr noch an — Seminare, Tagungen, Kundenevents? Wie oft kommt so etwas im Jahr zusammen, und liegen die auf festen Terminen?",
+    tip: "Der Anfang oben richtet sich danach, woher der Kontakt kam — nach einem Kaltakquise-Call greifst du das Telefonat auf, bei einem LinkedIn- oder Mailkontakt gibt es nichts vom Telefon zu erinnern und du brauchst nur eine kurze Brücke. Drei Informationen in einer Frage: Art, Häufigkeit und Termine. Die Termine sind der Teil, der im alten Skript fehlte — ohne sie kannst du am Ende keine konkrete Testanfrage vereinbaren, sondern nur ein vages „melden Sie sich mal\". Alles mitschreiben, auch die internen Namen der Veranstaltungen: Die CRM-Vorlage will sie vollständig aufgelistet haben, und beim nächsten Kontakt ist es Gold wert, den Summit beim Namen zu nennen.",
+    options: [
+      { label: "Mind. 3 externe Veranstaltungen/Jahr ODER ein Großevent bzw. eine wiederkehrende Serie", next: "g1_give_ja", icon: "✅", cls: "ja", g: "G1", p: 1, reason: "mind. 3 externe Veranstaltungen/Jahr oder Großevent bzw. wiederkehrende Serie" },
+      { label: "Einmal-Event, seltener Bedarf", next: "g1_give_nein", icon: "❌", cls: "nein", g: "G1", p: 0, reason: "Einmal-Event, seltener Bedarf" },
+      { label: "Unklar / weicht aus", next: "g1_give_nein", icon: "❔", cls: "neutral", g: "G1", p: 0, reason: "nicht besprochen" }
+    ]
+  },
+  g1_give_ja: {
+    phase: "Mehrwert nach G1 — bei regelmäßigem Bedarf",
+    title: "Kriterien werden festgehalten, kein Briefing von Null",
+    give: true,
+    text: "Genau dann lohnt sich ein fester Ansprechpartner, der Ihre Kriterien kennt: welche Häuser passen, welche nicht, worauf Sie bei Technik und Verpflegung achten. Das halten wir fest — Sie müssen also nicht bei jeder Veranstaltung neu briefen.",
+    tip: "Der Kern ist nicht der feste Ansprechpartner, sondern dass die Kriterien gespeichert sind und wiederverwendet werden. Genau das kann ein Portal nicht. Wenn im Gespräch ein konkretes Kriterium gefallen ist — Tagungstechnik, gute Bahnanbindung, vegetarische Verpflegung — dieses hier aufgreifen, dann ist der Satz kein Versprechen mehr, sondern eine Zusammenfassung.",
+    options: [
+      { label: "Weiter zu Frageblock 2", next: "g2", icon: "→", cls: "neutral" }
+    ]
+  },
+
+  g1_give_nein: {
+    phase: "Mehrwert nach G1 — bei seltenem Bedarf",
+    title: "Seltenheit ist das Argument, nicht der Ausschluss",
+    give: true,
+    text: "Dann nehmen wir Ihnen genau da am meisten ab: Wer das selten macht, fängt jedes Mal von vorne an — Häuser suchen, anfragen, vergleichen. Wir wissen, welches Haus zu welchem Format passt, und bringen die Dienstleister gleich mit.",
+    tip: "Der Baustein für regelmäßigen Bedarf wäre hier sinnlos: Bei einem Einmal-Event gibt es kein nächstes Mal, auf das man Kriterien anwenden könnte. Intern heißt G1 = 0 weniger aktive Vertriebszeit — nach außen bleibt das unsichtbar, und der Kunde bekommt eine ehrliche Antwort, die für seine Situation stimmt.",
+    options: [
+      { label: "Weiter zu Frageblock 2", next: "g2", icon: "→", cls: "neutral" }
+    ]
+  },
+
+  /* ---------------- G2 Volumen ---------------- */
+  g2: {
+    phase: "G2 — Volumen, Schritt 1: Größe",
+    title: "Eine Frage, und nur weiterfragen, solange G2 noch offen ist",
+    prefixLabel: "Anfang wählen",
+    prefix: [
+      { when: "Größe kam noch nicht vor", text: "Und wie groß ist so etwas bei Ihnen typischerweise \u2014 reden wir über 20 Teilnehmer oder eher über 100?" },
+      { when: "Zahl ist schon gefallen", text: "Sie hatten vorhin von [Zahl] Teilnehmern gesprochen \u2014 ist das bei Ihnen die typische Größe?" }
+    ],
+    tip: "Vorher standen hier vier Fragen in einem Satz: Übernachtungen, Teilnehmerzahl, Zimmerkontingente und Terminzahl. Das klang nach Abfragen und überforderte besonders Firmen ohne eigenes Eventteam \u2014 dort gibt es keine Zahlen aus einem Reporting, sondern Erinnerung. Jetzt eine Frage pro Screen, und jede Folgefrage kommt nur, wenn G2 noch nicht erfüllt ist. Der Trick in der Frage ist die Auswahl: „20 oder eher 100\" macht aus einer Rechenaufgabe eine Entscheidung, und fast jeder korrigiert von selbst nach oben oder unten. Wenn die Zahl vorhin schon gefallen ist, nimm die zweite Zeile \u2014 noch einmal danach zu fragen wäre der eigentliche Fehler. Ab etwa 50 Teilnehmern ist G2 erfüllt, dann direkt zum Mehrwert und nicht weiterfragen.",
+    options: [
+      { label: "Ab ca. 50 Teilnehmer", next: "g2_give_ja", icon: "✅", cls: "ja", g: "G2", p: 1, reason: "typischerweise ab ca. 50 Teilnehmer" },
+      { label: "Deutlich kleiner", next: "g2_uebernachtung", icon: "→", cls: "neutral" },
+      { label: "Unklar / weicht aus", next: "g2_uebernachtung", icon: "❔", cls: "neutral" }
+    ]
+  },
+
+  g2_uebernachtung: {
+    phase: "G2 — Schritt 2: Übernachtung",
+    title: "Nur wenn die Größe allein nicht reicht",
+    text: "Und sind da Übernachtungen dabei, oder sind das reine Tagesveranstaltungen?",
+    tip: "Diese Frage kommt bewusst erst hier und nicht zusammen mit der Größe. Sie ist eine Ja-Nein-Frage und in fünf Sekunden beantwortet, aber sie zählt eigenständig: Übernachtungen erfüllen G2 auch bei 30 Teilnehmern. Nicht aus Call 1 übernehmen \u2014 dort war es nur ein Ja oder Nein zur Auffangfrage, hier ist es die Bewertungsgrundlage. Und wer im ersten Call schon klar Ja gesagt hat, den fragst du hier trotzdem kurz, aber im Rückbezug: „Sie hatten erwähnt, dass Übernachtungen dabei sind \u2014 ist das die Regel?\"",
+    options: [
+      { label: "Übernachtungen sind dabei", next: "g2_give_ja", icon: "✅", cls: "ja", g: "G2", p: 1, reason: "Übernachtungen sind Teil der Veranstaltungen" },
+      { label: "Reine Tagesveranstaltungen", next: "g2_zimmer", icon: "→", cls: "neutral" },
+      { label: "Unklar / weicht aus", next: "g2_zimmer", icon: "❔", cls: "neutral" }
+    ]
+  },
+
+  g2_zimmer: {
+    phase: "G2 — Schritt 3: Zimmer für Gruppen",
+    title: "Der Weg, den fast niemand von sich aus nennt",
+    text: "Kommt es vor, dass Sie mal Zimmer für eine Gruppe blocken \u2014 etwa wenn Kollegen zu einer Messe fahren?",
+    tip: "Bewusst nicht „Zimmerkontingente\": Das ist unser Wort, nicht das des Kunden. Wer keine Eventabteilung hat, sagt eher „wir haben da mal ein paar Zimmer reserviert\" und würde bei der Fachvokabel Nein sagen, obwohl der Bedarf da ist. Das Messebeispiel ist der Auslöser, an dem es den meisten wieder einfällt \u2014 Messen laufen oft über eine andere Abteilung und tauchen bei den Veranstaltungen deshalb gar nicht auf. Ein Ja hier erfüllt G2 eigenständig, auch ohne klassische Übernachtung und auch bei kleinen Gruppen.",
+    options: [
+      { label: "Ja, das kommt vor", next: "g2_give_ja", icon: "✅", cls: "ja", g: "G2", p: 1, reason: "blockt Zimmer für Gruppen, z. B. bei Messen" },
+      { label: "Nein, kommt nicht vor", next: "g2_serie", icon: "→", cls: "neutral" }
+    ]
+  },
+
+  g2_serie: {
+    phase: "G2 — Schritt 4: Menge der Termine",
+    title: "Die letzte Möglichkeit, wie Volumen entstehen kann",
+    text: "Und sind das viele einzelne Termine im Jahr \u2014 also eher eine Serie oder Roadshow?",
+    tip: "Die Terminzahl steht am Ende der Kaskade und nicht am Anfang, weil sie nur noch für den kleinen Rest zählt: kleine Tagesformate ohne Übernachtung und ohne Zimmerbedarf. Bei denen kann Volumen nur noch über die Masse entstehen. Entscheidung von Nina: Eine Serie ist in der Regel viel Arbeit für wenig Umsatz und rechnet sich erst ab etwa 30 bis 40 Einzelterminen \u2014 darunter zählt G2 als 0, auch wenn viele Termine zusammenkommen. Wer bis hierher alle vier Fragen gehört hat, ist genau der Kandidat, bei dem G2 mit 0 richtig bewertet ist.",
+    options: [
+      { label: "Ja, ca. 30 Termine im Jahr oder mehr", next: "g2_give_serie", icon: "🔁", cls: "ja", g: "G2", p: 1, reason: "Serie mit ca. 30 Terminen oder mehr - Volumen entsteht über die Masse" },
+      { label: "Serie, aber deutlich unter 30 Terminen", next: "g2_give_nein", icon: "❌", cls: "nein", g: "G2", p: 0, reason: "Serie unter 30 Terminen - viel Arbeit für wenig Umsatz" },
+      { label: "Nein, einzelne kleine Tagesformate", next: "g2_give_nein", icon: "❌", cls: "nein", g: "G2", p: 0, reason: "nur kleine Tagesformate ohne Übernachtung und ohne Zimmerbedarf" },
+      { label: "Unklar / weicht aus", next: "g2_give_nein", icon: "❔", cls: "neutral", g: "G2", p: 0, reason: "nicht besprochen" }
+    ]
+  },
+  g2_give_ja: {
+    phase: "Mehrwert nach G2 — bei Übernachtung oder Volumen",
+    title: "Verhandeln und das ganze Dienstleister-Portfolio",
+    give: true,
+    text: "Da holen wir für Sie am meisten raus: Wir verhandeln Kontingente, Stornofristen und Tagungspauschalen — also genau die Punkte, die hinterher teuer werden. Und wir bringen nicht nur Häuser mit, sondern auch die Dienstleister drumherum: Technik, Catering, Fotograf, Transfer.",
+    tip: "Wirkt am stärksten direkt nach einer konkreten Zahl — die dann ruhig aufgreifen: bei 120 Personen ist die Stornofrist der Punkt, an dem es teuer wird. Der zweite Satz ist wichtiger, als er klingt: Unser Dienstleister-Portfolio ist der Teil, an den ein Unternehmen allein kaum herankommt, und er kommt in den Gesprächen viel zu selten vor.",
+    options: [
+      { label: "Weiter zu Frageblock 3", next: "orte", icon: "→", cls: "neutral" }
+    ]
+  },
+
+  g2_give_serie: {
+    phase: "Mehrwert nach G2 — bei Serien und Roadshows",
+    title: "Große Serie ab ca. 30 Terminen — hier zählt die Wiederholung",
+    give: true,
+    text: "Bei einer Serie ist die Wiederholung der Hebel: gleiche Qualität in jeder Stadt, ohne dass Sie zehnmal von vorne anfangen. Und Technik, Catering oder Fotograf laufen über dieselbe Anfrage mit.",
+    tip: "Entscheidung von Nina: Eine Serie ist in der Regel viel Arbeit für wenig Umsatz und rechnet sich erst ab etwa 30 bis 40 Einzelterminen. Deshalb gilt der Volumenfaktor bei einer Serie erst ab ungefähr 30 Terminen im Jahr als erfüllt — darunter zählt G2 als 0, auch wenn viele Termine zusammenkommen. Genau deshalb wird die Terminzahl in der Frage mit abgefragt: Ohne sie kann man hier nicht bewerten. Bei weniger als 30 Terminen den Baustein für kleine Tagesformate nehmen, nicht diesen.",
+    options: [
+      { label: "Weiter zu Frageblock 3", next: "orte", icon: "→", cls: "neutral" }
+    ]
+  },
+
+  g2_give_nein: {
+    phase: "Mehrwert nach G2 — bei kleinen Tagesformaten",
+    title: "Hier zählt Zeit, nicht Verhandlungsmacht",
+    give: true,
+    text: "Dann ist Ihr Gewinn vor allem Zeit: Sie schreiben uns zwei Zeilen, wir fragen die passenden Häuser an und Sie bekommen einen fertigen Vergleich. Und wenn Sie dafür Technik, Catering oder einen Fotografen brauchen — das läuft bei uns über dieselbe Anfrage mit.",
+    tip: "Der Verhandlungs-Baustein wäre hier ein Versprechen, das wir nicht halten können: Bei kleinen Tagesformaten gibt es keine Kontingente und keine Stornofristen zu verhandeln. Deshalb Zeitgewinn statt Konditionen, und das Dienstleister-Portfolio als zweites Argument — das gilt unabhängig von der Größe.",
+    options: [
+      { label: "Weiter zu Frageblock 3", next: "orte", icon: "→", cls: "neutral" }
+    ]
+  },
+
+  /* ---------------- Orte & Unzufriedenheit ---------------- */
+  orte: {
+    phase: "Orte & Erfahrungen",
+    title: "Frageblock 3: wo wart ihr, und was hat gestört",
+    text: "Wo waren Sie mit den Veranstaltungen zuletzt — und was war gut? Was hat gepasst, und was hat Sie am meisten Nerven gekostet?",
+    tip: "Die wichtigste Frage des Gesprächs, und im alten Skript fehlte sie ganz. Sie braucht kein Vorwissen aus Call 1 und liefert zwei Abschnitte der CRM-Vorlage auf einmal: bisherige Locations und Orte, und die Unzufriedenheit — die dort ausdrücklich wörtlich zitiert werden soll. Deshalb mitschreiben statt zusammenfassen, am besten in den Worten der Person. Diese Sätze sind später dein stärkster Aufhänger, in der Testanfrage und bei jedem Folgekontakt. Sie bewertet keinen Goldstandard, also nicht drängen: zuhören und erzählen lassen.",
+    options: [
+      { label: "Unzufriedenheit genannt und notiert", next: "orte_give_kritik", icon: "📝", cls: "ja" },
+      { label: "Nichts Konkretes, alles läuft gut", next: "orte_give_gut", icon: "➖", cls: "neutral" }
+    ]
+  },
+  orte_give_kritik: {
+    phase: "Mehrwert nach Frageblock 3 — es gab Kritik",
+    title: "Gezielt suchen statt Massenanfrage — auch am selben Ort",
+    give: true,
+    text: "Genau da setzen wir an. Sie sagen uns, was nicht gepasst hat, und danach suchen wir aus — auch in [Ort] gibt es meist Häuser, die man online nicht als Erstes findet. Wir fragen gezielt die an, die passen, statt eine Massenanfrage rauszuschicken wie ein Portal.",
+    tip: "Den genannten Ort wirklich einsetzen, nicht die Klammer vorlesen — das ist der Moment, in dem die Person merkt, dass zugehört wurde. Und wenn ein konkretes Ärgernis gefallen ist, dieses wörtlich aufgreifen: Wer „das Hin und Her mit den Absagen\" gesagt hat, soll genau das hier gelöst hören. Die Kernbotschaft ist die Zielgenauigkeit: Wir arbeiten mit Kriterien, ein Portal arbeitet mit Masse.",
+    options: [
+      { label: "Weiter zu Frageblock 4", next: "g3", icon: "→", cls: "neutral" }
+    ]
+  },
+
+  orte_give_gut: {
+    phase: "Mehrwert nach Frageblock 3 — alles läuft gut",
+    title: "Als zweite Meinung positionieren, nicht als Rettung",
+    give: true,
+    text: "Schön zu hören. Dann verstehen Sie uns einfach als zweite Meinung: In [Ort] und Umgebung kennen wir auch die Häuser, die man online nicht als Erstes findet. Mit einer Anfrage sehen Sie, ob es noch eine Alternative gibt — Aufwand entsteht Ihnen dabei keiner.",
+    tip: "Der Kritik-Baustein wäre hier ein Widerspruch: Man kann nicht sagen, wir setzen genau dort an, wo alles gut läuft. Deshalb die Rolle wechseln — nicht Problemlöser, sondern zweite Meinung. Das ist die einzige Position, die bei einem zufriedenen Kunden nicht anmaßend klingt, und sie lässt die bestehende Lösung in Ruhe. Den genannten Ort einsetzen; er ist hier das einzige Konkrete, das du hast.",
+    options: [
+      { label: "Weiter zu Frageblock 4", next: "g3", icon: "→", cls: "neutral" }
+    ]
+  },
+
+  /* ---------------- G3 Zugang ---------------- */
+  g3: {
+    phase: "G3 — Zugang",
+    title: "Frageblock 4: entscheidet die Person selbst, wer ist sonst beteiligt",
+    text: "Sie sind bei [Firma] für [Bereich] zuständig — entscheiden Sie am Ende auch selbst, wo gebucht wird? Oder ist außer Ihnen noch jemand beteiligt, wenn es um die Buchung von Firmenveranstaltungen und Gruppenbuchungen geht?",
+    tip: "Die Position greift auf, was am Anfang des Gesprächs schon gesagt wurde — das kostet nichts und zeigt, dass zugehört wurde. Zuständig sein und entscheiden sind zwei verschiedene Dinge: Im Kaltakquise-Call wurde nur die Zuständigkeit bestätigt, hier geht es um die Entscheidungsmacht. Die typischen Mitspieler sind Einkauf, Assistenz, Geschäftsführung oder ein Travel Management — bewusst nicht mit aufgezählt, weil eine Aufzählung die Antwort lenkt und länger dauert als offen zu fragen. Wenn eine andere Person entscheidet, sofort nachfassen, ob du zu ihr mitgenommen wirst; der direkte Draht ist der Punkt, nicht die Hierarchie. Und falls sich hier herausstellt, dass es die falsche Abteilung ist, etwa ein Travel Management für Einzelreisen: Das gehört eigentlich schon in den ersten Call und ist im Gatekeeper-Skript abgedeckt.",
+    options: [
+      { label: "Entscheidet selbst ODER bringt uns direkt zum Entscheider", next: "g3_give_ja", icon: "✅", cls: "ja", g: "G3", p: 1, reason: "entscheidet selbst oder bringt uns direkt zum Entscheider" },
+      { label: "Kein Draht zur entscheidenden Person", next: "g3_give_nein", icon: "❌", cls: "nein", g: "G3", p: 0, reason: "kein Draht zur entscheidenden Person" },
+      { label: "Unklar / weicht aus", next: "g3_give_nein", icon: "❔", cls: "neutral", g: "G3", p: 0, reason: "nicht besprochen" }
+    ]
+  },
+  g3_give_ja: {
+    phase: "Mehrwert nach G3 — entscheidet selbst",
+    title: "Wir übernehmen die Vorarbeit, nicht die Entscheidung",
+    give: true,
+    text: "Dann läuft es bei Ihnen kurz: Sie geben uns die Anfrage, wir kommen mit einer Empfehlung zurück, und Sie können direkt entscheiden. Für alles drumherum — Technik, Catering, Transfer — haben Sie denselben Ansprechpartner.",
+    tip: "Wer selbst entscheidet, will einen kurzen Weg und einen Ansprechpartner — nicht eine Vorlage zum Weitergeben, die wäre hier zusätzlicher Aufwand. Deshalb Kürze des Wegs und ein Kontakt für alles, inklusive Dienstleister. Bewusst vermieden: alles, was wie „dann ist das schnell entschieden\" klingt. Das unterstellt der Person, ihr Job sei trivial — bei einer Veranstaltung im sechsstelligen Bereich ist er das nicht.",
+    options: [
+      { label: "Weiter zu Frageblock 5", next: "g4", icon: "→", cls: "neutral" }
+    ]
+  },
+
+  g3_give_nein: {
+    phase: "Mehrwert nach G3 — jemand anderes entscheidet",
+    title: "Die Vorbereitung ist der Teil, der Zeit kostet",
+    give: true,
+    text: "Dann machen wir Ihnen die interne Runde leicht: Sie bekommen eine Vorlage, die Sie so weitergeben können — die Häuser im Vergleich, die Preise, Bilder, auf Wunsch mit unserer Empfehlung. Genau diese Aufbereitung ist der Teil, der sonst die meiste Zeit kostet. Entschieden wird bei Ihnen im Haus, aber Sie diskutieren auf einer fertigen Grundlage.",
+    tip: "Der Baustein gehört ausschließlich hierher: Wer selbst entscheidet, muss nichts intern weitergeben. Früher stand hier „die Entscheidung wird ein 10-Minuten-Thema\" — das ist raus. Bei einer Veranstaltung im sechsstelligen Bereich ist die Entscheidung kein Zehn-Minuten-Thema, und die Behauptung wirkt herablassend. Der echte Nutzen liegt in der Aufbereitung: Vergleich, Preise, Bilder und Empfehlung kosten in der Vorbereitung enorm viel Zeit, und die nehmen wir ab. Leichter wird die Entscheidung dadurch trotzdem, weil wir anhand der Kriterien gezielt angefragt haben.",
+    options: [
+      { label: "Weiter zu Frageblock 5", next: "g4", icon: "→", cls: "neutral" }
+    ]
+  },
+
+  /* ---------------- G4 Buchungsfreiheit ---------------- */
+  g4: {
+    phase: "G4 — Buchungsfreiheit",
+    title: "Frageblock 5: gibt es Bindungen",
+    text: "Und wie läuft die Buchung heute formal — gibt es Rahmenverträge mit Hotelketten, eine Portal-Pflicht oder eine Agentur, mit der Sie fest zusammenarbeiten?",
+    tip: "Der häufigste versteckte Disqualifikator, und er kam im Kaltakquise-Call nicht vor — dort wurde nur gefragt, wie organisiert wird, nicht ob es eine Verpflichtung gibt. Hier nicht oberflächlich abnicken: Portal-Pflicht und Rahmenverträge kommen selten von allein zur Sprache, weil sie für die Person selbstverständlich sind. Ohne Buchungsfreiheit gibt es keine Buchung über uns, dann ist das schönste Potenzial wertlos.",
+    options: [
+      { label: "Keine Bindung — kein Rahmenvertrag, kein Portal-Zwang, keine feste Agentur", next: "g4_give_ja", icon: "✅", cls: "ja", g: "G4", p: 1, reason: "kein Rahmenvertrag, kein Portalzwang, keine fest gebundene Agentur" },
+      { label: "Buchungen laufen verpflichtend über Portal / Rahmenvertrag / Agentur", next: "g4_give_nein", icon: "❌", cls: "nein", g: "G4", p: 0, reason: "Buchungen laufen verpflichtend über Portal, Rahmenvertrag oder Agentur" },
+      { label: "Unklar / weicht aus", next: "g4_give_unklar", icon: "❔", cls: "neutral", g: "G4", p: 0, reason: "nicht besprochen" }
+    ]
+  },
+  g4_give_ja: {
+    phase: "Mehrwert nach G4 — keine Bindung",
+    title: "Keine Bindung ist unsere Voraussetzung — das gleich sagen",
+    give: true,
+    text: "Super, dann passt das grundsätzlich: Keine Bindung ist bei uns die Voraussetzung — nur dann können wir exklusiv für Sie arbeiten und beim Anbieter wirklich verhandeln.",
+    tip: "Bewusst kurz und bewusst positiv: Der Kunde hat gerade etwas gesagt, das für uns die Grundvoraussetzung ist, und das darf er auch hören. Der Portal-Vergleich passt hier nicht — es gibt keine bestehende Lösung, gegen die man vergleichen müsste. Der eigentliche Gewinn dieses Bausteins liegt woanders: Er nennt Exklusivität schon hier als Voraussetzung, damit die Spielregel bei G5 zwei Minuten später nicht aus dem Nichts kommt, sondern nur noch bestätigt wird.",
+    options: [
+      { label: "Weiter zum Modell-Baustein (G5)", next: "g5_modell", icon: "→", cls: "neutral" }
+    ]
+  },
+
+  g4_give_nein: {
+    phase: "Mehrwert nach G4 — Bindung vorhanden",
+    title: "Nicht gegen die Bindung reden, sondern daneben",
+    give: true,
+    text: "Verstehe. Dann schauen wir, was außerhalb davon läuft — Tagungen, Kundenevents und die Dienstleister drumherum sind selten mit abgedeckt. Und wenn sich an der Bindung mal etwas ändert, wissen Sie, dass es uns gibt.",
+    tip: "Hier gibt es wenig zu holen, und das ehrlich zu behandeln ist besser als ein Verkaufsversuch. Gegen einen Rahmenvertrag können wir nichts tun, und über eine andere Agentur wissen wir nicht, wie sie arbeitet — also auch nichts Negatives behaupten. Deshalb kurz halten und nur die zwei Türen benennen, die offen sind: das Geschäft neben der Bindung und der Zeitpunkt, an dem sie ausläuft. Über ein Auslaufen aktiv zu verhandeln ist nichts für dieses Gespräch. Wenn dir der letzte Halbsatz zu vorwärts ist, lass ihn weg — der erste Satz allein trägt auch.",
+    options: [
+      { label: "Weiter zum Modell-Baustein (G5)", next: "g5_modell", icon: "→", cls: "neutral" }
+    ]
+  },
+
+  g4_give_unklar: {
+    phase: "Mehrwert nach G4 — noch unklar",
+    title: "Nicht drängen, bei der ersten Anfrage klärt es sich",
+    give: true,
+    text: "Wunderbar, dann klärt sich das bei der ersten Anfrage. Für uns ist einfach nur wichtig, dass keine Verträge mit anderen Partnern bestehen — dann können wir exklusiv für Sie arbeiten.",
+    tip: "Weder der positive noch der ablehnende Baustein passt hier: Der eine würde eine Freiheit feiern, die nicht bestätigt ist, der andere eine Bindung unterstellen, die es vielleicht nicht gibt. Deshalb ein neutraler Übergang. G4 bleibt bei 0 und in der CRM-Notiz steht „nicht besprochen\" — das ist korrekt, denn ungeprüft ist nicht dasselbe wie frei. Bei der Testanfrage fällt es ohnehin auf.",
+    options: [
+      { label: "Weiter zum Modell-Baustein (G5)", next: "g5_modell", icon: "→", cls: "neutral" }
+    ]
+  },
+
+  /* ---------------- G5 Modell ---------------- */
+  g5_modell: {
+    phase: "G5 — Modell & Spielregeln",
+    title: "Ruhig überleiten, dann nach Fragen fragen statt nach Zustimmung",
+    modell: true,
+    text: "Jetzt kommen wir noch kurz zu unserem Modell und zur Zusammenarbeit. Für Sie ist unsere Arbeit komplett kostenlos — wir werden von den Anbietern über eine Vermittlungsprovision bezahlt. Es gibt keinen Haken, es gibt ausschließlich klare Spielregeln: Die Anfrage läuft ausschließlich über uns, ohne Parallelagentur und ohne dass Sie vorher selbst schon beim Hotel angefragt haben. Alles Weitere passt auf ein Blatt: Ihr Bedarf ist konkret, Sie sind als Ansprechpartner gut erreichbar, und der Vertrag entsteht direkt zwischen Ihnen und dem Anbieter.\n\nHaben Sie Fragen zu dem Modell?",
+    foldLabel: "Referenz-Beispiel — nur wenn es sich anbietet",
+    fold: "Einer unserer Kunden, ein Softwarehersteller, macht mit uns seit fünf Jahren seinen jährlichen Summit mit 750 Teilnehmern — angefangen haben wir mit einem kleinen Seminar als Testanfrage.",
+    tip: "Zwei Dinge sind hier bewusst geändert. Erstens die Überleitung: Sie kündigt Modell und Zusammenarbeit an, statt mit dem Geld hereinzuplatzen. Zweitens die Frage am Ende. Früher stand dort, ob das so okay wäre — darauf sagt fast jeder reflexhaft ja, ohne das Modell durchdacht zu haben, und dann steht in der CRM-Notiz ein Punkt, den es nicht gibt. Nach Fragen zu fragen bringt die echten Bedenken an die Oberfläche, und erst die Antwort darauf zeigt, ob G5 wirklich erfüllt ist. Deshalb gibt es auch einen eigenen Button für das schnelle Ja ohne erkennbares Verständnis. Ruhig und selbstbewusst vortragen: Wir setzen die Spielregeln, wir bitten nicht um Erlaubnis. Der Verweis auf das Blatt beweist die Sparsamkeit der Regeln, also muss es danach auch wirklich mitkommen. Das Referenz-Beispiel liegt eingeklappt, weil es an dieser Stelle je nach Gesprächsverlauf passt oder störend wirkt.",
+    options: [
+      { label: "Keine Fragen oder Fragen geklärt — Spielregeln akzeptiert", next: "testanfrage", icon: "✅", cls: "ja", g: "G5", p: 1, reason: "versteht das Provisionsmodell und akzeptiert, dass die Anfrage zuerst zu uns kommt" },
+      { label: "Schnelles Ja, aber ohne erkennbares Verständnis", next: "g5_verstehen", icon: "❔", cls: "neutral", g: "G5", p: 0, reason: "schnelle Zustimmung ohne erkennbares Verstaendnis des Modells" },
+      { label: "Will parallel mehrere Agenturen / Portale anfragen", next: "g5_nachfassen", icon: "❌", cls: "nein", g: "G5", p: 0, reason: "will parallel mehrere Agenturen oder Portale anfragen" }
+    ]
+  },
+
+  g5_verstehen: {
+    phase: "G5 — konkret nachfragen",
+    title: "Ein schnelles Ja ist noch kein Verständnis",
+    text: "Damit es später keine Missverständnisse gibt, sage ich es einmal ganz konkret: Wenn Sie uns eine Anfrage geben, fragen Sie parallel nicht selbst beim Hotel an und geben sie auch nicht zusätzlich an eine andere Agentur. Ist das so für Sie machbar?",
+    tip: "Der Screen existiert wegen eines echten Musters: Wer das Modell in dreißig Sekunden gehört hat, sagt im Zweifel ja, ohne die Folgen durchdacht zu haben — und merkt es erst bei der ersten Anfrage. Hier wird die Spielregel deshalb in eine einzige, überprüfbare Handlungsanweisung übersetzt. Kommt jetzt ein überzeugtes Ja, ist G5 erfüllt. Kommt Zögern, ist es das nicht, und das ist eine wertvolle Information: Parallel-Anfrager verursachen laut Infosheet volle Arbeit ohne Abschlusschance.",
+    options: [
+      { label: "Klares Ja — versteht es und geht mit", next: "testanfrage", icon: "✅", cls: "ja", g: "G5", p: 1, reason: "nach konkreter Nachfrage verstanden und einverstanden" },
+      { label: "Zögert oder relativiert", next: "g5_nachfassen", icon: "❌", cls: "nein", g: "G5", p: 0, reason: "zoegert bei der konkreten Spielregel" }
+    ]
+  },
+  g5_nachfassen: {
+    phase: "G5 — einmal nachfassen",
+    title: "Offen sagen, wovon wir leben",
+    text: "Das verstehe ich. Deshalb ganz offen, wie das bei uns funktioniert: Für Sie ist die Arbeit kostenlos — wir leben von dem Abschluss, der am Ende zustande kommt. Wenn parallel eine andere Agentur oder ein Portal anfragt, haben wir die komplette Recherche gemacht und gehen leer aus. Deshalb ist das für uns keine Formalie, sondern die Grundlage der Zusammenarbeit.",
+    tip: "Vorher stand hier „Sie verpflichten sich zu nichts\" — das ist zwar wahr, weicht aber der eigentlichen Frage aus und klingt beschwichtigend. Die wirtschaftliche Realität offen zu benennen ist stärker: Der Kunde versteht sofort, warum die Regel existiert, und sie wirkt nicht wie eine Schikane. Genau einmal nachfassen, keine Einwandschleife. Bleibt es beim Nein, ist das kein Scheitern, sondern eine Information — und kein Grund für eine Absage. Der Kunde kommt auf die passive Schiene, nicht auf eine Ausschlussliste.",
+    options: [
+      { label: "Jetzt okay — geht mit", next: "testanfrage", icon: "✅", cls: "ja", g: "G5", p: 1, reason: "nach Nachfassen einverstanden, dass die Anfrage zuerst zu uns kommt" },
+      { label: "Bleibt beim Nein", next: "tuer_offen", icon: "❌", cls: "nein", g: "G5", p: 0, reason: "Spielregel nach Nachfassen abgelehnt" }
+    ]
+  },
+
+  tuer_offen: {
+    phase: "Freundlich, aber mit offener Tür",
+    title: "Kein Druck, kein Beleidigtsein — die Tür bleibt auf",
+    text: "Okay, wenn das für Sie so nicht passt, ist das schade. Vielleicht geben Sie uns trotzdem irgendwann die Möglichkeit: Wenn eine Veranstaltung ansteht, bei der Sie noch nirgends angefragt haben, melden Sie sich einfach — dann zeigen wir Ihnen, was wir können.",
+    tip: "Dieser Screen ersetzt den früheren Weg, der auch nach einem klaren Nein noch den ganzen Testanfrage-Ablauf vorgetragen hat. Das war unsinnig: Wer die Spielregel ablehnt, braucht keine Beschreibung eines Prozesses, den er so nicht nutzen wird. Wichtig ist der Tonfall — freundlich, ohne Druck und ohne Enttäuschung zu zeigen. Die Bedingung im Nebensatz („bei der Sie noch nirgends angefragt haben\") wiederholt die Spielregel ein letztes Mal, ohne sie zu verhandeln.",
+    options: [
+      { label: "Weiter zur Einstufung & zum Abschluss", next: "auswertung", icon: "→", cls: "neutral" }
+    ]
+  },
+
+  /* ---------------- Testanfrage ---------------- */
+  testanfrage: {
+    phase: "So läuft Ihre Testanfrage",
+    title: "Den Ablauf konkret machen — ohne zum Parallel-Suchen einzuladen",
+    modell: true,
+    text: "Ganz konkret würde das so laufen:\n\n1. Sie schicken uns die Eckdaten Ihrer nächsten Veranstaltung — Termin, Teilnehmerzahl, Ort, ob mit Übernachtung — und dazu die Kriterien, die Ihnen für diese Veranstaltung wichtig sind.\n2. Wir melden uns im besten Fall noch am selben Tag zurück, falls etwas unklar ist.\n3. In der Regel haben Sie innerhalb von " + LIEFERTEMPO + " unsere Entscheidungsvorlage auf dem Tisch: die passenden Häuser nebeneinander, mit Nettopreisen, Stornobedingungen, Anbindung und Parken, Bildern und unserer Empfehlung.\n4. Sie entscheiden dann völlig frei. Buchen Sie eines der Häuser, läuft der Vertrag direkt zwischen Ihnen und dem Anbieter — bis dahin sind wir Ihr Ansprechpartner. Und ist noch nichts Passendes dabei, suchen wir weiter, bis es passt.",
+    foldLabel: "Nach internen Vorgaben fragen — wenn es sich anbietet",
+    fold: "Gibt es bei Ihnen firmeninterne Vorgaben oder Richtlinien, an die wir uns halten sollten — zum Beispiel bei Hotelkategorien, Preisrahmen oder Nachhaltigkeit?",
+    tip: "Zum Liefertempo: Im Fact-Sheet steht „in der Regel 3 bis 5 Werktage\", und das „in der Regel\" gehört mitgesprochen — nur versprechen, was wir sicher halten. Zwei Dinge sind außerdem bewusst geändert. Erstens Schritt 1: Nicht „zwei Zeilen per Mail reichen\", sondern Eckdaten UND Kriterien — genau daraus entsteht die gezielte Suche, und ohne die Kriterien liefern wir dasselbe wie ein Portal. Zweitens Schritt 4: Dort stand vorher, der Kunde solle unser Ergebnis mit dem vergleichen, was er selbst gefunden hätte. Das widersprach direkt der Spielregel, die zwei Minuten vorher gesetzt wurde — wir bitten ihn ja gerade, NICHT selbst anzufragen. Jetzt geht es um die freie Entscheidung, den Vertrag direkt mit dem Anbieter und die Zusage, weiterzusuchen, bis etwas passt. Zwei Präzisierungen stecken darin: Wir sind Ansprechpartner bis zur Vertragsunterzeichnung, danach laufen die Detailabsprachen direkt zwischen Kunde und Anbieter — so steht es auch auf dem Blatt. Und statt „passt nichts, kostet es Sie nichts\" heißt es jetzt, dass wir weitersuchen: Das ist die stärkere Zusage und verhindert, dass ein erster Fehlversuch das Ende der Zusammenarbeit ist. Schritt 3 nennt konkret, was in der Vorlage steht; das ist glaubwürdiger als „Häuser im Vergleich\" und deckt sich mit dem, was der Angebotsvergleich tatsächlich enthält. Zur eingeklappten Frage: Nach der bisherigen Tagungspauschale zu fragen führt in die Irre, weil sie stark vom Ort abhängt — in Leipzig sind 70 Euro normal, in Frankfurt 110. Firmeninterne Vorgaben sind die brauchbare Information, und die CRM-Vorlage will genannte Budgets ohnehin nur festhalten, nicht erfragen.",
+    options: [
+      { label: "Weiter zur Einstufung & zum Abschluss", next: "auswertung", icon: "→", cls: "neutral" }
+    ]
+  },
+
+  auswertung: {
+    phase: "Einstufung",
+    title: "Score, K.-o.-Regeln und Abschlusspfad",
+    isResult: true,
+    tip: "Die Punkteleiste oben ist keine Deko, sondern die Versicherung gegen den teuersten Fehler: Die CRM-Vorlage vergibt bei „nicht besprochen\" null Punkte. Du kannst ein A-Konto also allein dadurch verlieren, dass du eine Frage vergessen hast. Wenn hier noch ein grauer Chip steht, lohnt es sich, im Gespräch kurz zurückzugehen. Und: Unklar ist wirklich 0, nicht schönrechnen — es wird bei der Testanfrage ohnehin sichtbar."
+  },
+
+  /* ---------------- Abschlusspfade ---------------- */
+  abschluss_testanfrage: {
+    phase: "Abschluss — Testanfrage vereinbaren",
+    title: "Verbindlich werden: konkrete Veranstaltung, konkrete Angaben, konkrete Adresse",
+    text: "Wann steht Ihre nächste Veranstaltung an? … Wunderbar, dann machen wir damit genau die Testanfrage. Sie schicken mir im Anschluss einfach die Angaben dazu — Termin, Teilnehmerzahl, Ort, ob mit Übernachtung — und dazu Ihre Kriterien, was Ihnen für diese Veranstaltung wichtig ist. Ich schicke Ihnen direkt nach unserem Gespräch eine kurze Mail — dann antworten Sie einfach darauf und haben meine Adresse gleich da. Und vielen Dank, dass Sie sich die Zeit genommen und so offen alle Fragen beantwortet haben.",
+    tip: "Der einzige Screen, auf dem es verbindlich wird — bei einem A-Konto ist das das Ziel des Gesprächs, bei einem B-Konto nimm ihn, wenn eine konkrete Veranstaltung genannt wurde. Drei Dinge müssen hier fallen: die konkrete Veranstaltung, die Angaben inklusive Kriterien und deine Mailadresse. Die Mail nach dem Gespräch ist der Punkt, der am häufigsten vergessen wird und ohne den die Testanfrage nie ankommt. Bewusst wird die Adresse nicht am Telefon buchstabiert — verhört oder vertippt ist sie schneller als richtig notiert. Die Mail direkt hinterherzuschicken löst das und gibt der Person zugleich etwas, worauf sie antworten kann. Bewusst nicht von „nur vier Angaben\" sprechen: Erstens sind es mehr, zweitens will man an dieser Stelle, dass die Person über ihre Veranstaltung erzählt — je mehr sie erzählt, desto gezielter die Suche. Und die Kriterien wörtlich mitschreiben, nicht zusammenfassen.",
+    isEnd: true,
+    action: "✓ Eckdaten SOFORT aufnehmen: Termin · Teilnehmer · Ort · Übernachtung ja/nein\n✓ Kriterien der Person wörtlich mitschreiben — daraus entsteht die gezielte Suche\n✓ Mail direkt nach dem Gespräch raus (josephine.buetefisch@synnevents.de) — die Person antwortet einfach darauf\n✓ Blatt „Die Grundlage für eine gute Zusammenarbeit\" mitschicken\n✓ Bei A-Konto: Nina informieren, sie betreut persönlich\n✓ Bestätigungsmail noch heute raus, mit Liefertermin\n✓ CRM-Notiz eintragen (Text unten kopieren)"
+  },
+
+  abschluss_offen: {
+    phase: "Abschluss — freundlich und mit Einladung",
+    title: "Bedanken, einladen, keinen Druck machen",
+    text: "Vielen Dank, dass Sie sich die Zeit genommen und so offen alle Fragen beantwortet haben — das hilft mir wirklich weiter. Wenn bei Ihnen die nächste Veranstaltung ansteht, probieren Sie uns einfach aus: Sie schicken mir die Eckdaten und Ihre Kriterien, alles andere machen wir. Meine Kontaktdaten schicke ich Ihnen gleich mit, damit Sie sie haben.",
+    tip: "Ein Abschluss für B- und C-Konten, weil der Unterschied intern ist und nicht im Gespräch. Für den Kunden gibt es keinen Grund, unterschiedlich zu klingen — er merkt nur, ob er freundlich behandelt wird. Was sich unterscheidet, ist die Aktionsliste darunter. Bewusst gestrichen: Der frühere C-Satz sprach davon, dass wir da sind, wenn sich die Veranstaltungslandschaft ändert — das klingt an dieser Stelle floskelhaft und distanziert. Und wichtig: Nach fünf Frageblöcken hat die Person viel erzählt, ohne etwas zu bekommen. Der Dank dafür ist keine Höflichkeitsfloskel, sondern das Mindeste.",
+    isEnd: true,
+    action: "GILT IMMER\n✓ Kontaktdaten und Blatt „Die Grundlage für eine gute Zusammenarbeit\" senden\n✓ CRM-Notiz eintragen (Text unten kopieren)\n\nBEI B-KONTO (3–4 Punkte)\n✓ Falls eine Veranstaltung mit Termin genannt wurde: Wiedervorlage genau dort setzen\n✓ Betreuung an die 12h-Kraft übergeben\n✓ Kann durch Verhalten zum A-Konto werden — Verhalten schlägt Aussagen\n\nBEI C-KONTO (0–2 Punkte)\n✓ Infomaterial senden, Newsletter/Radar aufnehmen\n✓ Keine aktive Vertriebszeit mehr — kein schlechtes Gewissen, C heißt „nicht jetzt\", nicht „nie\"\n✓ Bei G4 = 0: einmal prüfen, ob es Bedarf AUSSERHALB des Rahmenvertrags gibt"
+  }
+};
+
+const einwaende = [
+  {
+    q: "„Schicken Sie mir erstmal Unterlagen.\"",
+    a: "Mache ich gern — aber Unterlagen sagen weniger als ein echter Vergleich. Was ist Ihre nächste Veranstaltung? Dann zeigen wir es, statt es zu erzählen.",
+    note: "Nicht diskutieren: Unterlagen zusagen UND die Testanfrage anbieten."
+  },
+  {
+    q: "„Wir haben schon eine Agentur / machen das selbst.\"",
+    a: "Das heißt, Sie bekommen heute innerhalb von 24 Stunden drei vergleichbare Angebote mit Nettopreisen auf einen Blick?",
+    note: "Skala-Technik. Hintergrund: Schlechte Erreichbarkeit und langsames Tempo sind laut Branchendaten Ausschlussgrund Nr. 1 bei Eventplanern."
+  },
+  {
+    q: "„Wo ist der Haken?\"",
+    a: "Es gibt keinen Haken, es gibt ausschließlich klare Spielregeln: Die Anfrage läuft ausschließlich über uns, ohne Parallelagentur und ohne dass Sie vorher selbst schon beim Hotel angefragt haben. Alles Weitere passt auf ein Blatt: Ihr Bedarf ist konkret, Sie sind als Ansprechpartner gut erreichbar, und der Vertrag entsteht direkt zwischen Ihnen und dem Anbieter.",
+    note: "KAUFSIGNAL, kein Einwand. Wer so fragt, hat den Nutzen verstanden und sucht den Preis. Danach das Blatt mitschicken."
+  },
+  {
+    q: "„Wir haben Rahmenverträge / Portal-Pflicht.\"",
+    a: "Dann sind wir für die Pflicht-Buchungen nicht die Richtigen. Was läuft denn außerhalb des Rahmenvertrags?",
+    note: "Ehrlich bleiben. Teil-Potenzial prüfen, sonst sauber auf C. G4 = 0 bedeutet: nie A-Konto."
+  },
+  {
+    q: "„Was kostet mich das am Ende wirklich?\"",
+    a: "Nichts. Auch bei Stornierung entstehen Ihnen keine Zusatzkosten. Projektmanagement, Detailplanung und Vor-Ort-Betreuung bieten wir separat und kostenpflichtig an — das ist aber eine eigene Entscheidung und hat mit der Suche nichts zu tun.",
+    note: "Steht so auf dem Blatt „Die Grundlage für eine gute Zusammenarbeit\". Die Abgrenzung offen nennen, sonst wirkt sie später wie ein verstecktes Upsell."
+  }
+];
+
+const totalDepth = 12;
+let history = [], current = 'start', scores = {};
+
+function esc(t) { return t.replace(/\n/g, '<br>'); }
+
+function einstufung() {
+  const keys = ['G1','G2','G3','G4','G5'];
+  const points = keys.reduce((a, k) => a + (scores[k] && scores[k].p === 1 ? 1 : 0), 0);
+  let level = points === 5 ? 'A' : points >= 3 ? 'B' : 'C';
+  const kos = [];
+  const g4 = scores.G4, g5 = scores.G5;
+  if (g4 && g4.p === 0) { if (level === 'A') level = 'B'; kos.push('<strong>K.-o.-Regel 1 greift:</strong> G4 = 0, keine Buchungsfreiheit → <strong>nie A-Konto</strong>. Nur prüfen, ob es Bedarf AUSSERHALB des Rahmenvertrags oder Portals gibt.'); }
+  if (g5 && g5.p === 0) { if (level === 'A') level = 'B'; kos.push('<strong>K.-o.-Regel 2 greift:</strong> G5 = 0, Spielregel abgelehnt → <strong>maximal B</strong>. Du hast einmal nachgefasst — bleibt es beim Nein, sauber auf C.'); }
+  return { points: points, level: level, kos: kos };
+}
+
+const G_NAMES = { G1: 'Frequenz', G2: 'Volumen', G3: 'Zugang', G4: 'Buchungsfreiheit', G5: 'Spielregel' };
+
+function crmNotiz() {
+  const e = einstufung();
+  let out = '[KÜRZEL] [TTMMJJ]\n\n';
+  out += 'GESPRÄCHSPARTNER & UNTERNEHMEN\n- \n\n';
+  out += 'EVENTLANDSCHAFT & VOLUMEN\n- \n\n';
+  out += 'AKTUELLE LÖSUNG & ENTSCHEIDUNGSWEGE\n- \n\n';
+  out += 'REAKTION AUF UNSER MODELL\n- \n\n';
+  out += 'GOLDSTANDARD-CHECK\n';
+  ['G1','G2','G3','G4','G5'].forEach(k => {
+    const sc = scores[k];
+    out += k + ' ' + G_NAMES[k] + ': ' + (sc ? sc.p : 0) + ' - ' + (sc ? sc.reason : 'nicht besprochen') + '\n';
+  });
+  out += 'Summe: ' + e.points + ' - Einstufung: ' + e.level + '\n';
+  out += 'Betreuung: ' + (e.level === 'A' ? 'Nina persönlich' : e.level === 'B' ? '12h-Kraft, Wiedervorlage' : 'passiv (Newsletter/Radar)') + '\n\n';
+  out += 'NEXT STEP: ';
+  return out;
+}
+
+function renderScorebar() {
+  const e = einstufung();
+  let html = '<span class="scorebar-label">Goldstandards</span>';
+  ['G1','G2','G3','G4','G5'].forEach(k => {
+    const sc = scores[k];
+    const c = !sc ? '' : sc.p === 1 ? ' pass' : ' fail';
+    html += `<span class="chip${c}">${k}${!sc ? '' : sc.p === 1 ? ' ✓' : ' ✗'}</span>`;
+  });
+  const answered = ['G1','G2','G3','G4','G5'].filter(k => scores[k]).length;
+  html += `<span class="chip chip-total">${e.points}/5${answered === 5 ? ' → ' + e.level : ''}</span>`;
+  document.getElementById('scorebar').innerHTML = html;
+}
+
+function renderEinwaende() {
+  document.getElementById('einwand-body').innerHTML = einwaende.map(w =>
+    `<div class="ew"><div class="ew-q">${w.q}</div><div class="ew-a">${esc(w.a)}</div><div class="ew-note">${w.note}</div></div>`).join('');
+}
+
+function render() {
+  const s = steps[current];
+  renderScorebar();
+
+  const prog = document.getElementById('progress');
+  prog.innerHTML = '';
+  for (let i = 0; i < totalDepth; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < history.length ? ' done' : i === history.length ? ' active' : '');
+    prog.appendChild(d);
+  }
+
+  const bc = document.getElementById('breadcrumb');
+  if (history.length === 0) { bc.innerHTML = ''; }
+  else {
+    const parts = history.map(h => `<span>${steps[h.step] ? steps[h.step].phase : h.step}</span>`);
+    parts.push(`<span style="color:#1a1a18;font-weight:500">${s.phase}</span>`);
+    bc.innerHTML = parts.join(' <span>›</span> ');
+  }
+
+  let html = '';
+  if (history.length > 0) html += `<button class="back-btn" onclick="goBack()">← Zurück</button>`;
+
+  if (s.isResult) {
+    const e = einstufung();
+    const namen = { A: 'A-Konto', B: 'B-Konto', C: 'C-Konto' };
+    const subs = {
+      A: 'Nina übernimmt persönlich. Ziel noch in diesem Call: konkrete Testanfrage mit der nächsten echten Veranstaltung vereinbaren.',
+      B: 'Testanfrage anbieten, 12h-Kraft pflegt den Kontakt, Wiedervorlage im CRM. Kann durch Verhalten zum A-Konto werden.',
+      C: 'Freundlich bleiben, Infomaterial, Newsletter/Radar — keine aktive Vertriebszeit mehr. Wir lehnen niemanden ab, wir entscheiden nur, wo wir Zeit investieren.'
+    };
+    const offen = ['G1','G2','G3','G4','G5'].filter(k => !scores[k]);
+    html += `<div class="verdict verdict-${e.level.toLowerCase()}">`;
+    html += `<div class="verdict-head">${e.points}/5 → ${namen[e.level]}</div>`;
+    html += `<div class="verdict-sub">${subs[e.level]}</div>`;
+    e.kos.forEach(k => { html += `<div class="ko">${k}</div>`; });
+    if (offen.length) html += `<div class="ko"><strong>Noch nicht bewertet:</strong> ${offen.join(', ')} — zählt als 0 und als „nicht besprochen\". Wenn du noch im Gespräch bist, lohnt sich ein Rücksprung.</div>`;
+    html += `</div>`;
+    html += `<div class="card"><div class="phase">Abschlusspfad wählen</div><div class="actions">`;
+    html += `<button class="btn ja" onclick="go('abschluss_testanfrage')">Testanfrage jetzt konkret vereinbaren${e.level === 'A' ? ' — bei A das Ziel' : e.level === 'B' ? ' — bei B, wenn eine Veranstaltung ansteht' : ''}</button>`;
+    html += `<button class="btn neutral" onclick="go('abschluss_offen')">Freundlich abschließen und einladen${e.level === 'C' ? ' — bei C der richtige Weg' : ''}</button>`;
+    html += `</div></div>`;
+    document.getElementById('content').innerHTML = html;
+    document.getElementById('einwand-panel').style.display = '';
+    return;
+  }
+
+  html += `<div class="card"><div class="phase">${s.phase}</div>`;
+  if (s.prep) {
+    html += `<div class="prep"><div class="prep-head">${s.prepHead}</div><ul>` +
+      s.prep.map(x => `<li>${x}</li>`).join('') + `</ul></div>`;
+  }
+  if (s.prefix) {
+    html += `<div class="prefix"><div class="prefix-head">${s.prefixLabel}</div>`;
+    s.prefix.forEach(pf => {
+      html += `<div class="prefix-row"><span class="prefix-when">${pf.when}</span><span class="prefix-say">„${pf.text}"</span></div>`;
+    });
+    html += `</div>`;
+  }
+  if (s.text) {
+    const cls = s.give ? ' give' : s.modell ? ' modell' : '';
+    if (s.give) html += `<div class="give-label">Mehrwert-Baustein — wörtlich</div>`;
+    html += `<div class="text-box${cls}"><button class="copy-btn" onclick="copyText(this)">Kopieren</button>${esc(s.text)}</div>`;
+  }
+  if (s.fold) {
+    html += `<details class="fold"><summary>${s.foldLabel}</summary><div class="fold-body"><div class="text-box"><button class="copy-btn" onclick="copyText(this)">Kopieren</button>${esc(s.fold)}</div></div></details>`;
+  }
+
+  if (s.isEnd) {
+    html += `</div><div class="end-box"><div class="end-label">Nächste Aktion</div><div class="action-box">${esc(s.action || '')}</div></div>`;
+    html += `<div class="end-box"><div class="end-label">CRM-Notiz im Smartnotes-Format — Goldstandards sind ausgefüllt</div><div class="crm-box"><button class="copy-btn" onclick="copyText(this)">Kopieren</button>${esc(crmNotiz())}</div></div>`;
+    html += `<button class="restart-btn" onclick="restart()">↺ Neues Gespräch starten</button>`;
+    document.getElementById('einwand-panel').style.display = 'none';
+  } else {
+    html += `<div class="actions">`;
+    s.options.forEach(opt => {
+      const pts = opt.g ? `<span class="pt pt-${opt.p}">${opt.g} = ${opt.p}</span>` : '';
+      const r = (opt.reason || '').replace(/'/g, "\\'");
+      const args = opt.g ? `'${opt.next}','${opt.g}',${opt.p},'${r}'` : `'${opt.next}'`;
+      html += `<button class="btn ${opt.cls || ''}" onclick="go(${args})">${opt.icon ? opt.icon + ' ' : ''}<span>${opt.label}</span>${pts}</button>`;
+    });
+    html += `</div></div>`;
+    document.getElementById('einwand-panel').style.display = '';
+  }
+  document.getElementById('content').innerHTML = html;
+}
+
+function copyText(btn) {
+  const box = btn.parentElement;
+  const text = box.innerText.replace('Kopieren', '').replace('✓ Kopiert', '').trim();
+  if (navigator.clipboard) navigator.clipboard.writeText(text);
+  btn.textContent = '✓ Kopiert';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Kopieren'; btn.classList.remove('copied'); }, 2000);
+}
+
+function go(next, g, p, reason) {
+  history.push({ step: current, g: g || null });
+  if (g) scores[g] = { p: p, reason: reason };
+  current = next;
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function goBack() {
+  if (!history.length) return;
+  const h = history.pop();
+  if (h.g) delete scores[h.g];
+  current = h.step;
+  render();
+}
+function restart() { history = []; scores = {}; current = 'start'; render(); }
+function jumpTo(step) {
+  if (!steps[step]) return;
+  history = []; current = step; render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+renderEinwaende();
+render();
+</script>
+
+<hr class="section-divider">
+<div class="section-title">Gesprächsstrang — Übersicht auf einen Blick</div>
+<div class="section-hint"><strong>Verloren im Gespräch?</strong> Such die Box mit dem Satz, den du gerade gesagt hast, und klick sie an — das Klick-Tool oben springt genau dorthin. Jede Box ist wörtlich derselbe Text wie im Tool. Achtung: Ein Sprung setzt die Punkteleiste zurück, weil der Weg dorthin nicht rekonstruierbar ist.</div>
+<div class="overview">
+  <div class="legend">
+    <div class="li"><div class="ld" style="background:#AFA9EC"></div> Einstieg</div>
+    <div class="li"><div class="ld" style="background:#85B7EB"></div> Frageblock</div>
+    <div class="li"><div class="ld" style="background:#5DCAA5"></div> Mehrwert-Baustein</div>
+    <div class="li"><div class="ld" style="background:#EF9F27"></div> Modell &amp; Testanfrage</div>
+    <div class="li"><div class="ld" style="background:#B4B2A9"></div> Abschluss</div>
+    <div class="li" style="margin-left:auto;color:#534AB7;font-weight:600">↳ Box anklicken = Tool springt dorthin</div>
+  </div>
+  <div id="overview-body"></div>
+</div>
+
+<script>
+const layout = [
+  { t:'sect', text:'Vor dem Anruf' },
+  { t:'node', step:'start', cls:'n-start' },
+
+  { t:'sect', text:'Zwei Einstiege — je nachdem, woher der Kontakt kam' },
+  { t:'twoup', steps:[
+    { step:'einstieg', cls:'n-start' },
+    { step:'einstieg_inbound', cls:'n-start', badge:'neu' }
+  ]},
+  { t:'merge', text:'ab hier identisch: Frage → Mehrwert → Frage' },
+
+  { t:'sect', text:'Frageblock 1 — Frequenz (G1)' },
+  { t:'node', step:'g1', cls:'n-q' },
+  { t:'scores', of:'g1' },
+  { t:'twoup', steps:[
+    { step:'g1_give_ja', cls:'n-give' },
+    { step:'g1_give_nein', cls:'n-give', badge:'neu in v2' }
+  ]},
+  { t:'ov-divider' },
+
+  { t:'sect', text:'Frageblock 2 — Volumen (G2), als Kaskade: weiterfragen nur, solange G2 offen ist' },
+  { t:'node', step:'g2', cls:'n-q', badge:'neu in v2' },
+  { t:'scores', of:'g2' },
+  { t:'node', step:'g2_uebernachtung', cls:'n-q', badge:'neu in v2' },
+  { t:'scores', of:'g2_uebernachtung' },
+  { t:'node', step:'g2_zimmer', cls:'n-q', badge:'neu in v2' },
+  { t:'scores', of:'g2_zimmer' },
+  { t:'node', step:'g2_serie', cls:'n-q', badge:'neu in v2' },
+  { t:'scores', of:'g2_serie' },
+  { t:'merge', text:'jeder der vier Schritte führt in einen der drei Mehrwert-Bausteine' },
+  { t:'threeup', steps:[
+    { step:'g2_give_ja', cls:'n-give' },
+    { step:'g2_give_serie', cls:'n-give', badge:'neu in v2' },
+    { step:'g2_give_nein', cls:'n-give', badge:'neu in v2' }
+  ]},
+  { t:'ov-divider' },
+
+  { t:'sect', text:'Frageblock 3 — Orte & Unzufriedenheit (kein Goldstandard, aber der wichtigste Block)' },
+  { t:'node', step:'orte', cls:'n-q', badge:'neu in v2' },
+  { t:'twoup', steps:[
+    { step:'orte_give_kritik', cls:'n-give', badge:'neu in v2' },
+    { step:'orte_give_gut', cls:'n-give', badge:'neu in v2' }
+  ]},
+  { t:'ov-divider' },
+
+  { t:'sect', text:'Frageblock 4 — Zugang (G3)' },
+  { t:'node', step:'g3', cls:'n-q' },
+  { t:'scores', of:'g3' },
+  { t:'twoup', steps:[
+    { step:'g3_give_ja', cls:'n-give' },
+    { step:'g3_give_nein', cls:'n-give', badge:'neu in v2' }
+  ]},
+  { t:'ov-divider' },
+
+  { t:'sect', text:'Frageblock 5 — Buchungsfreiheit (G4)' },
+  { t:'node', step:'g4', cls:'n-q' },
+  { t:'scores', of:'g4' },
+  { t:'threeup', steps:[
+    { step:'g4_give_ja', cls:'n-give' },
+    { step:'g4_give_nein', cls:'n-give', badge:'neu in v2' },
+    { step:'g4_give_unklar', cls:'n-give', badge:'neu in v2' }
+  ]},
+  { t:'merge', text:'Fragen sind durch — jetzt das Modell' },
+
+  { t:'sect', text:'Modell & Spielregel (G5)' },
+  { t:'node', step:'g5_modell', cls:'n-act' },
+  { t:'scores', of:'g5_modell' },
+  { t:'ov-divider' },
+  { t:'node', step:'g5_verstehen', cls:'n-q', badge:'neu in v2' },
+  { t:'scores', of:'g5_verstehen' },
+  { t:'ov-divider' },
+  { t:'node', step:'g5_nachfassen', cls:'n-q' },
+  { t:'scores', of:'g5_nachfassen' },
+
+  { t:'sect', text:'Wenn die Spielregel abgelehnt wird' },
+  { t:'node', step:'tuer_offen', cls:'n-give', badge:'neu in v2' },
+
+  { t:'sect', text:'So läuft Ihre Testanfrage' },
+  { t:'node', step:'testanfrage', cls:'n-act' },
+
+  { t:'sect', text:'Einstufung — wird vom Tool berechnet' },
+  { t:'node', step:'auswertung', cls:'n-hint' },
+  { t:'hint', text:'5 Punkte = A · 3–4 = B · 0–2 = C · G4 = 0 nie A · G5 = 0 höchstens B · nicht bewertet zählt als 0' },
+
+  { t:'sect', text:'Abschlusspfade' },
+  { t:'twoup', steps:[
+    { step:'abschluss_testanfrage', cls:'n-end' },
+    { step:'abschluss_offen', cls:'n-end', badge:'neu in v2' }
+  ]}
+];
+
+function ovEsc(t) { return t.replace(/\n/g, '<br>'); }
+function tagCls(cls) { return cls === 'ja' ? 'tag-ja' : cls === 'nein' ? 'tag-nein' : 'tag-info'; }
+
+function ovNode(step, cls, badge) {
+  const s = steps[step];
+  const b = badge ? ` <span class="tag tag-neu">${badge}</span>` : '';
+  let body = '';
+  if (s.prep) body += '<ul style="margin:0;padding-left:1.1rem">' + s.prep.map(x => `<li>${x}</li>`).join('') + '</ul>';
+  if (s.prefix) {
+    body += `<div class="ov-label">${s.prefixLabel}</div>`;
+    s.prefix.forEach(pf => { body += `<div><strong>${pf.when}:</strong> „${ovEsc(pf.text)}"</div>`; });
+    body += '<div style="height:5px"></div>';
+  }
+  if (s.text) body += `„${ovEsc(s.text)}"`;
+  if (!s.text && !s.prep && !s.prefix) body += `<em>${s.title}</em>`;
+  if (s.fold) body += `<div class="ov-label" style="margin-top:7px">${s.foldLabel}</div>„${ovEsc(s.fold)}"`;
+  if (s.isEnd) body += `<div class="ov-label" style="margin-top:7px">Nächste Aktion</div>${ovEsc(s.action || '')}`;
+  return `<div class="ov-node ${cls} ov-click" data-step="${step}" title="Anklicken — das Tool oben springt an diese Stelle"><div class="ov-label">${s.phase}${b}</div>${body}</div>`;
+}
+
+function ovRender(it) {
+  if (it.t === 'node')       return ovNode(it.step, it.cls, it.badge);
+  if (it.t === 'hint')       return `<div class="ov-node n-hint">${it.text}</div>`;
+  if (it.t === 'ov-divider') return `<div class="ov-divider"></div>`;
+  if (it.t === 'sect')       return `<div class="sect-head">${it.text}</div>`;
+  if (it.t === 'merge')      return `<div class="merge-bar"><div class="merge-line"></div>${it.text}<div class="merge-line"></div></div><div class="v"><div class="vline"></div></div>`;
+  if (it.t === 'chain') {
+    const o = steps[it.of].options[it.opt];
+    return `<div class="chain"><span class="tag ${tagCls(o.cls)}">${o.icon} ${o.label}</span><span class="chain-txt">${it.text}</span></div>`;
+  }
+  if (it.t === 'scores') {
+    const s = steps[it.of];
+    return `<div style="margin:6px 0 8px">` + s.options.filter(o => o.g).map(o =>
+      `<div class="chain"><span class="tag ${tagCls(o.cls)}">${o.g} = ${o.p}</span><span class="chain-txt">${o.label}</span></div>`).join('') + `</div>`;
+  }
+  if (it.t === 'twoup') {
+    return `<div class="twoup">` + it.steps.map(c => `<div>${ovNode(c.step, c.cls, c.badge)}</div>`).join('') + `</div>`;
+  }
+  if (it.t === 'threeup') {
+    return `<div class="threeup">` + it.steps.map(c => `<div>${ovNode(c.step, c.cls, c.badge)}</div>`).join('') + `</div>`;
+  }
+  return '';
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  const body = document.getElementById('overview-body');
+  body.innerHTML = layout.map(it => {
+    const h = ovRender(it);
+    return (it.t === 'node') ? `<div class="center-box">${h}</div>` : h;
+  }).join('');
+  body.addEventListener('click', function (e) {
+    const el = e.target.closest('.ov-click');
+    if (!el) return;
+    jumpTo(el.getAttribute('data-step'));
+  });
+
+  const whyOrder = ['start','einstieg','einstieg_inbound','g1','g1_give_ja','g1_give_nein','g2','g2_uebernachtung','g2_zimmer','g2_serie','g2_give_ja','g2_give_serie','g2_give_nein','orte','orte_give_kritik','orte_give_gut','g3','g3_give_ja','g3_give_nein','g4','g4_give_ja','g4_give_nein','g4_give_unklar','g5_modell','g5_verstehen','g5_nachfassen','tuer_offen','testanfrage','auswertung','abschluss_testanfrage','abschluss_offen'];
+  document.getElementById('why-body').innerHTML = whyOrder.filter(k => steps[k] && steps[k].tip).map(k => {
+    const st = steps[k];
+    return `<div class="why-item"><div class="why-phase">${st.phase}</div><div class="why-title">${st.title}</div><div class="why-text">${st.tip}</div></div>`;
+  }).join('');
+});
+</script>
+
+<hr class="section-divider">
+<div class="section-title">Gedankenstütze — wieso, weshalb, warum</div>
+<div class="section-hint">Steht bewusst hier unten und nicht im Skript: beim Telefonieren willst du den Satz und die Buttons sehen, nichts sonst.</div>
+<div class="why">
+  <div class="why-intro">
+    <strong>Die fünf Leitgedanken</strong>
+    <ul>
+      <li><strong>Call 2 fragt nicht neu, sondern bestätigt und bohrt tiefer.</strong> Was im Kaltakquise-Call schon beantwortet wurde, wird aufgegriffen — die eckigen Klammern in den Fragen sind genau dafür da. Wer dieselbe Frage zweimal stellt, zeigt, dass er nicht zugehört hat.</li>
+      <li><strong>Give-and-Get:</strong> nie zwei Frageblöcke hintereinander, ohne dazwischen etwas zu geben. Jeder Mehrwert ist ein eigener Screen und lässt sich nicht überspringen.</li>
+      <li><strong>Kein Closing, kein Druck.</strong> Qualifiziert wird intern unsere Vertriebsenergie, nicht der Kunde. Für den Kunden ist das Onboarding. Niemand wird abgelehnt — wir entscheiden nur, wo wir aktive Zeit investieren.</li>
+      <li><strong>„Nicht besprochen" kostet einen Punkt.</strong> Die CRM-Vorlage vergibt bei fehlender Information null Punkte. Ein A-Konto kann also allein durch eine vergessene Frage verloren gehen — dagegen ist die Punkteleiste oben gebaut.</li>
+      <li><strong>Verhalten schlägt Aussagen.</strong> Der Score aus dem Gespräch ist eine Hypothese. Der heimliche sechste Standard ist das Verhalten bei der Testanfrage: Tempo, realistische Eckdaten, Entscheidungsfreude.</li>
+    </ul>
+  </div>
+  <div id="why-body"></div>
+</div>
+
+<hr class="section-divider">
+<div class="section-title">Was ist neu in v2</div>
+<div class="changelog">
+  <h3>Änderungen — abgeleitet aus der Smartnotes-Vorlage „Zweitgespräch Qualifizierung"</h3>
+  <ul>
+    <li><strong>Kein Recherche-Aufwand vor dem Call.</strong> Das Vorwissen ist der vereinbarte Termin selbst — die Person war im ersten Call überzeugt. Nur G1 greift den ersten Call auf („Sie hatten am Telefon erzählt, dass Sie Veranstaltungen außer Haus durchführen"), weil das immer stimmt. Alle anderen Fragen funktionieren ohne jedes Vorwissen. Die Vorbereitung ist auf drei Punkte geschrumpft.</li>
+    <li><strong>Alle Mehrwert-Bausteine sprachlich überarbeitet</strong> — weg von Beraterdeutsch wie „Punkte, an denen ohne Verhandlung Geld liegen bleibt". Zwei Botschaften kommen jetzt überall vor, wo sie passen: Wir vermitteln nicht nur Häuser, sondern auch die Dienstleister drumherum, an die ein Unternehmen allein kaum herankommt. Und wir arbeiten mit Kriterien statt mit Massenanfragen wie ein Portal.</li>
+    <li><strong>G2 fragt Übernachtungen wieder ausdrücklich ab</strong>, zusammen mit Teilnehmerzahl und Zimmerkontingenten. Vorher stand dort ein Bezug auf den ersten Call, der die Antwort schon vorausgesetzt hätte — dann wäre G2 automatisch erfüllt und die Volumenfrage überflüssig gewesen.</li>
+    <li><strong>Neuer Fall bei G2: Serie oder Roadshow.</strong> Viele kleine Termine erfüllen keines der drei G2-Kriterien, erzeugen über die Masse aber echtes Volumen. Der Fall hat einen eigenen Antwort-Button und einen eigenen Mehrwert-Baustein; nach geltender Definition zählt er als 0, und die CRM-Notiz vermerkt die offene Definitionsfrage ausdrücklich.</li>
+    <li><strong>Die Mehrwert-Bausteine richten sich nach der Antwort.</strong> Vorher führten alle drei Antworten eines Frageblocks auf denselben Baustein — bei einem Einmal-Event kam dann „beim zweiten Mal sagen Sie uns nur noch: wie letztes Mal". Jetzt hat jeder Block zwei Fassungen, und das Tool wählt anhand deiner Antwort: bei G1 Seltenheit als Vorteil statt fester Ansprechpartner, bei G2 Zeitgewinn statt Verhandlungsmacht, bei G3 kurze Wege statt interner Weitergabe, bei G4 das Potenzial außerhalb der Bindung statt Portal-Vergleich.</li>
+    <li><strong>Die Kurzvariante am Einstieg ist weg.</strong> Wer sich einen Termin hat legen lassen, will nicht abkürzen — der Button war ein Fremdkörper aus dem Kaltakquise-Denken.</li>
+    <li><strong>Rolle und Standorte werden erfragt</strong> — der erste Abschnitt der CRM-Vorlage blieb bisher leer. Die Frage hängt am Pitch statt auf einem eigenen Screen, damit die Give-and-Get-Regel hält.</li>
+    <li><strong>Neuer Frageblock „Orte & Unzufriedenheit".</strong> Er bewertet keinen Goldstandard, füllt aber zwei Abschnitte der CRM-Vorlage gleichzeitig — bisherige Locations und die wörtlich zu zitierende Unzufriedenheit. Letztere ist zugleich der stärkste Aufhänger für die Testanfrage und fehlte im alten Skript vollständig.</li>
+    <li><strong>G1 fragt jetzt auch nach Terminen</strong>, G2 zusätzlich nach Zimmerkontingenten, G3 zusätzlich nach den weiteren Beteiligten. Alles drei verlangt die CRM-Vorlage, keines stand im alten Skript.</li>
+    <li><strong>G4 ist als eigenständige Frage formuliert</strong>, weil im Kaltakquise-Call nur gefragt wurde, wie organisiert wird — nicht, ob eine Verpflichtung besteht.</li>
+    <li><strong>Frageblock 2 ist eine Kaskade statt einer Batterie.</strong> Vorher standen Übernachtungen, Teilnehmerzahl, Zimmerkontingente und Terminzahl in einem Satz — das klang nach Abfragen und überforderte besonders Firmen ohne eigenes Eventteam. Jetzt eine Frage pro Screen, und jede Folgefrage kommt nur, wenn G2 noch offen ist: Größe → Übernachtung → Zimmer für Gruppen → Menge der Termine. Wer ab 50 Teilnehmern liegt, hört genau eine Frage.</li>
+    <li><strong>Die Größenfrage bietet eine Auswahl an</strong> („20 Teilnehmer oder eher über 100") statt eine Zahl zu verlangen — das macht aus einer Rechenaufgabe eine Entscheidung. Und wenn die Zahl vorher schon gefallen ist, gibt es einen zweiten Anfang im Rückbezug, damit nicht doppelt gefragt wird.</li>
+    <li><strong>„Zimmerkontingente" ist aus der Frage raus.</strong> Das ist unser Wort, nicht das des Kunden. Gefragt wird jetzt nach Zimmern für eine Gruppe, mit dem Messebeispiel als Auslöser — Messen laufen oft über eine andere Abteilung und tauchen bei den Veranstaltungen sonst nicht auf.</li>
+    <li><strong>Der Orte-Block hat zwei Mehrwert-Bausteine.</strong> Auf „alles läuft gut" mit „genau da setzen wir an" zu antworten war ein Widerspruch — man kann nicht dort ansetzen, wo nichts kaputt ist. Bei Kritik geht es jetzt um gezielte Auswahl, bei Zufriedenheit positionieren wir uns als zweite Meinung. Beide greifen den genannten Ort auf, der vorher in keiner Antwort vorkam.</li>
+    <li><strong>Die Kriterien-Botschaft steht nur noch einmal</strong>, bei G1. Vorher wiederholte sich „wir halten Ihre Kriterien fest" in drei Bausteinen.</li>
+    <li><strong>Testanfrage Schritt 4 präzisiert zwei Dinge:</strong> Wir sind Ansprechpartner bis zur Vertragsunterzeichnung, danach laufen die Detailabsprachen direkt zwischen Kunde und Anbieter. Und statt „passt nichts, kostet es Sie nichts" heißt es jetzt, dass wir weitersuchen, bis etwas passt — die stärkere Zusage.</li>
+    <li><strong>Aus drei Abschlusspfaden sind zwei geworden.</strong> B und C klangen für den Kunden unterschiedlich, obwohl der Unterschied rein intern ist — er merkt nur, ob er freundlich behandelt wird. Jetzt gibt es einen verbindlichen Abschluss für die konkrete Testanfrage und einen freundlichen mit Einladung; die Aktionsliste darunter unterscheidet zwischen B und C.</li>
+    <li><strong>Beide Abschlüsse bedanken sich ausdrücklich.</strong> Nach fünf Frageblöcken hat die Person viel erzählt, ohne etwas bekommen zu haben — der Dank dafür ist das Mindeste und fehlte vorher komplett.</li>
+    <li><strong>Der verbindliche Abschluss nennt die Mailadresse</strong>, an die die Anfrage gehen soll. Ohne sie kommt die Testanfrage nie, und sie war bisher weder im Text noch in der Aktionsliste.</li>
+    <li><strong>„Wenn sich Ihre Veranstaltungslandschaft ändert" ist gestrichen</strong> — floskelhaft und distanziert an einer Stelle, an der es um einen warmen Abschluss geht.</li>
+    <li><strong>Der Testanfrage-Ablauf war in sich widersprüchlich.</strong> Schritt 4 lud den Kunden ein, unser Ergebnis mit dem zu vergleichen, was er selbst gefunden hätte — zwei Minuten nachdem wir ihn gebeten hatten, gerade nicht selbst anzufragen. Ersetzt durch freie Entscheidung, Vertrag direkt mit dem Anbieter und kein Risiko. Derselbe Widerspruch stand in den Abschlusspfaden A und B und ist dort ebenfalls raus.</li>
+    <li><strong>Schritt 1 fragt jetzt Eckdaten UND Kriterien ab</strong> statt „zwei Zeilen per Mail reichen". Ohne die Kriterien liefern wir dasselbe wie ein Portal — sie sind die Grundlage der gezielten Suche.</li>
+    <li><strong>Schritt 3 nennt konkret, was in der Entscheidungsvorlage steht:</strong> Häuser nebeneinander mit Nettopreisen, Stornobedingungen, Anbindung und Parken, Bildern und Empfehlung. Das deckt sich mit dem, was der Angebotsvergleich tatsächlich enthält, und ist glaubwürdiger als eine allgemeine Beschreibung.</li>
+    <li><strong>Die Budgetfrage ist ersetzt.</strong> Nach der bisherigen Tagungspauschale zu fragen führt in die Irre, weil sie stark vom Ort abhängt — in Leipzig sind 70 Euro normal, in Frankfurt 110. Gefragt wird jetzt nach firmeninternen Vorgaben und Richtlinien.</li>
+    <li><strong>Beim Nachfassen zu G5 benennen wir offen, wovon wir leben</strong> statt zu beschwichtigen. Und wer die Spielregel endgültig ablehnt, bekommt nicht mehr den kompletten Testanfrage-Ablauf vorgetragen, sondern einen freundlichen Abschluss mit offener Tür.</li>
+    <li><strong>G5 fragt nach Fragen, nicht nach Zustimmung.</strong> Früher endete der Modell-Baustein mit „Wäre das für Sie okay?" — darauf sagt fast jeder reflexhaft ja, ohne das Modell durchdacht zu haben, und in der CRM-Notiz stand dann ein Punkt, den es nicht gab. Jetzt lautet die Frage „Haben Sie Fragen zu dem Modell?", und für das schnelle Ja ohne erkennbares Verständnis gibt es einen eigenen Weg, der die Spielregel in eine überprüfbare Handlungsanweisung übersetzt.</li>
+    <li><strong>Die Überleitung zum Modell ist neu.</strong> „Zum Geld, damit das klar ist" ist ersetzt durch „Jetzt kommen wir noch kurz zu unserem Modell und zur Zusammenarbeit."</li>
+    <li><strong>Das Referenz-Beispiel mit dem Summit liegt eingeklappt</strong>, weil es je nach Gesprächsverlauf passt oder mitten im Modell-Baustein störend wirkt.</li>
+    <li><strong>Der Modell-Baustein enthält den neuen Spielregel-Satz</strong> („Es gibt keinen Haken — es gibt ausschließlich eine klare Spielregel …") und das korrigierte Bezahl-Wording „von den Anbietern bezahlt".</li>
+    <li><strong>Die CRM-Notiz kommt im Smartnotes-Format</strong>, mit den fünf Goldstandard-Zeilen im Format „G1 Frequenz: 1 - Begründung", Summe, Einstufung und einer NEXT-STEP-Zeile. Die Begründung ist automatisch der Button, den du geklickt hast.</li>
+    <li><strong>Das Blatt „Die Grundlage für eine gute Zusammenarbeit" ist Standard-Anhang</strong> auf allen drei Abschlusspfaden — der Modell-Baustein verweist darauf, also muss es auch kommen.</li>
+    <li><strong>Die Budgetfrage liegt eingeklappt bei der Testanfrage</strong> statt im Fragenblock. Die Vorlage will genannte Budgets festhalten, verlangt aber nicht, danach zu fragen.</li>
+    <li><strong>Bei der Einstufung wird gewarnt, wenn ein Standard nicht bewertet ist</strong> — inklusive Hinweis, dass ein Rücksprung sich lohnt, solange das Gespräch läuft.</li>
+    <li><strong>Aufbau wie bei den anderen beiden Tools:</strong> Screens nur mit Sprechtext und Buttons, darunter der klickbare Gesprächsstrang, darunter die Gedankenstütze.</li>
+  </ul>
+</div>
+</body>
+</html>
